@@ -5,14 +5,15 @@ from dash import dcc
 from dash.dependencies import Input, Output, State
 import plotly.express as px
 import dash
+import seaborn as sns
 
 
 #Erstellung vom Dataframe und Bereinigung 
-#df = pd.read_csv("AUS_Fares_March2024.csv", sep=',')
-#df = df[["Year","Month","YearMonth","Port1","Port2","Route","$Value","$Real"]]
+df = pd.read_csv("AUS_Fares_March2024.csv", sep=',')
+df = df[["Year","Month","YearMonth","Port1","Port2","Route","$Value","$Real"]]
 #print(df.info())
-#unique_values = df['Port1'].unique()
-#print(unique_values)
+unique_values = df['Port1'].unique()
+print(unique_values)
 
 #df = df[["Year","Month","YearMonth","Port1","Port2","Route","$Value","$Real"]]
 #df = df[(df["Port1"] == "Adelaide") & (df["Port2"] == "Sydney")]
@@ -69,48 +70,98 @@ layout = html.Div([
     html.Div([
         html.Div([
             html.H1("", style={'font-size': '30px', 'color': '#FFFFFF'}),
+            html.P("Abflug:", style={'font-size': '30px'}),
             dcc.Dropdown(
                 options=[
                     {"label": "Adelaide", "value": "Adelaide"},
                     {"label": "Albury", "value": "Albury"},
                     {"label": "Alice Springs", "value": "Alice Springs"},
+                    {"label": "Armidale", "value": "Armidale"},
                     {"label": "Avalon", "value": "Avalon"},
                     {"label": "Ayers Rock", "value": "Ayers Rock"},
                     {"label": "Ballina", "value": "Ballina"},
                     {"label": "Brisbane", "value": "Brisbane"},
                     {"label": "Broome", "value": "Broome"},
-                    {"label": "Bundaberg", "value": "Bundaberg"}
+                    {"label": "Bundaberg", "value": "Bundaberg"},
+                    {"label": "Cairns", "value": "Cairns"},
+                    {"label": "Canberra", "value": "Canberra"},
+                    {"label": "Coffs Harbour", "value": "Coffs Harbour"},
+                    {"label": "Darwin", "value": "Darwin"},
+                    {"label": "Devonport", "value": "Devonport"},
+                    {"label": "Dubbo", "value": "Dubbo"},
+                    {"label": "Geraldton", "value": "Geraldton"},
+                    {"label": "Gold Coast", "value": "Gold Coast"},
+                    {"label": "Hamilton Island", "value": "Hamilton Island"},
+                    {"label": "Hervey Bay", "value": "Hervey Bay"},
+                    {"label": "Hobart", "value": "Hobart"},
+                    {"label": "Kalgoorlie", "value": "Kalgoorlie"},
+                    {"label": "Karratha", "value": "Karratha"},
+                    {"label": "Launceston", "value": "Launceston"},
+                    {"label": "Melbourne", "value": "Melbourne"},
+                    {"label": "Newcastle", "value": "Newcastle"},
+                    {"label": "Paraburdoo", "value": "Paraburdoo"},
+                    {"label": "Perth", "value": "Perth"},
+                    {"label": "Port Macquari", "value": "Port Macquarie"},
+                    {"label": "Proserpine", "value": "Paraburdoo"},
+                    {"label": "Sunshine Coast", "value": "Sunshine Coast"},
+                    {"label": "Sydney", "value": "Sydney"}
                 ],
                 value="Adelaide",
                 id="Port1",
-                style={'width': '40%',
+                style={'width': '30%',
                "margin-left": "auto", 
                "margin-right" : "auto", 
                 "display" : "block"},
             ),
+            html.P("Ankunft:", style={'font-size': '30px'}),
 
             dcc.Dropdown(
                 options=[
                     {"label": "Adelaide", "value": "Adelaide"},
                     {"label": "Albury", "value": "Albury"},
                     {"label": "Alice Springs", "value": "Alice Springs"},
+                    {"label": "Armidale", "value": "Armidale"},
                     {"label": "Avalon", "value": "Avalon"},
                     {"label": "Ayers Rock", "value": "Ayers Rock"},
                     {"label": "Ballina", "value": "Ballina"},
                     {"label": "Brisbane", "value": "Brisbane"},
                     {"label": "Broome", "value": "Broome"},
-                    {"label": "Bundaberg", "value": "Bundaberg"}
+                    {"label": "Bundaberg", "value": "Bundaberg"},
+                    {"label": "Cairns", "value": "Cairns"},
+                    {"label": "Canberra", "value": "Canberra"},
+                    {"label": "Coffs Harbour", "value": "Coffs Harbour"},
+                    {"label": "Darwin", "value": "Darwin"},
+                    {"label": "Devonport", "value": "Devonport"},
+                    {"label": "Dubbo", "value": "Dubbo"},
+                    {"label": "Geraldton", "value": "Geraldton"},
+                    {"label": "Gold Coast", "value": "Gold Coast"},
+                    {"label": "Hamilton Island", "value": "Hamilton Island"},
+                    {"label": "Hervey Bay", "value": "Hervey Bay"},
+                    {"label": "Hobart", "value": "Hobart"},
+                    {"label": "Kalgoorlie", "value": "Kalgoorlie"},
+                    {"label": "Karratha", "value": "Karratha"},
+                    {"label": "Launceston", "value": "Launceston"},
+                    {"label": "Melbourne", "value": "Melbourne"},
+                    {"label": "Newcastle", "value": "Newcastle"},
+                    {"label": "Paraburdoo", "value": "Paraburdoo"},
+                    {"label": "Perth", "value": "Perth"},
+                    {"label": "Port Macquari", "value": "Port Macquarie"},
+                    {"label": "Proserpine", "value": "Paraburdoo"},
+                    {"label": "Sunshine Coast", "value": "Sunshine Coast"},
+                    {"label": "Sydney", "value": "Sydney"}
                 ],
            
-            value="Ballina",
+            value="Brisbane",
             id="Port2",
-            style={'width': '40%',
+            style={'width': '30%',
             "margin-left": "auto", 
             "margin-right" : "auto", 
             "display" : "block"},
             ),
+            html.H1("", style={'font-size': '30px', 'color': '#FFFFFF'}),
+            html.H1("", style={'font-size': '30px', 'color': '#FFFFFF'}),
 
-            dcc.Graph(id="time-series-chart", style = {'width': '70%', "height" : '60%', "margin-left": "auto", "margin-right" : "auto", "display" : "block"}),
+            dcc.Graph(id="time-series-chart", style = {'width': '50%', "height" : '60%', "margin-left": "auto", "margin-right" : "auto", "display" : "block"}),
             
         ])
     ])
@@ -129,6 +180,23 @@ layout = html.Div([
 
 
 @callback(
+    Output("Port2", "options"),
+    Input("Port1", "value")
+)
+
+
+def update_port2_options(selected_port1):
+    df = pd.read_csv("AUS_Fares_March2024.csv", sep=',')
+    df = df[["Year","Port1","Port2","$Value"]]
+    filtered_df = df[df["Port1"] == selected_port1]
+    port2_options = [{"label": port, "value": port} for port in filtered_df["Port2"].unique()]
+
+    return port2_options
+
+
+
+
+@callback(
     Output(component_id= "time-series-chart", component_property="figure"),
     Input(component_id= "Port1", component_property="value"),
     Input(component_id= "Port2", component_property="value"),
@@ -139,9 +207,9 @@ def Strecke(Port1,Port2):
     df = pd.read_csv("AUS_Fares_March2024.csv", sep=',')
     df = df[["Year","Month","YearMonth","Port1","Port2","Route","$Value","$Real"]]
     df = df[(df["Port1"] == Port1) & (df["Port2"] == Port2)]
-    df = df[["$Value"]]
+    #df = df[["$Value"]]
     df = df.reset_index(drop=True)
 
-    fig = px.line(df, x="$Value", y=df["$Value"],template="ggplot2", labels={"Date": "Datum"})
-    
+    fig = px.bar(df, x="Year", y=df["$Value"],template="none", labels={"Date": "Datum"},color_discrete_sequence=['#4169E1'])
+    fig.update_layout(plot_bgcolor='#D3D3D3')
     return fig
