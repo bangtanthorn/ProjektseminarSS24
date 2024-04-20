@@ -55,7 +55,7 @@ tab_selected_style = {
 
 #Farbe für gesamtes Dash
 colors = {
-    'background': '#121212',
+    'background': '#000000',
     'text': '#FFFFFF',
     "Button" : "#4169E1"
 }
@@ -63,14 +63,14 @@ colors = {
 
 layout = html.Div([
     # Zwei leere Zeilen um Abstand zu bilden
-    html.P("Wähle eine Strecke aus:", style={'font-size': '30px'}),
+    html.P("Wähle eine Strecke aus:", style={'font-size': '30px','color': '#FFFFFF'}),
     html.H1("", style={'font-size': '30px', 'color': '#FFFFFF'}),
     html.H1("", style={'font-size': '30px', 'color': '#FFFFFF'}),
     # Layout und style für die Auswahl der Prognosemodelle in Form von einem Dropdown 
     html.Div([
         html.Div([
             html.H1("", style={'font-size': '30px', 'color': '#FFFFFF'}),
-            html.P("Abflug:", style={'font-size': '30px'}),
+            html.P("Abflug:", style={'font-size': '30px', 'color': '#FFFFFF'}),
             dcc.Dropdown(
                 options=[
                     {"label": "Adelaide", "value": "Adelaide"},
@@ -113,7 +113,7 @@ layout = html.Div([
                "margin-right" : "auto", 
                 "display" : "block"},
             ),
-            html.P("Ankunft:", style={'font-size': '30px'}),
+            html.P("Ankunft:", style={'font-size': '30px', 'color': '#FFFFFF'}),
 
             dcc.Dropdown(
                 options=[
@@ -168,7 +168,7 @@ layout = html.Div([
 ],
 
     #Weitere Style-Eigenschaften definieren
-    style={'background-color': "#D3D3D3",
+    style={'background-color': "#121212",
           'background-size': '100%',
           'width': '100%',
           'height':'95%',
@@ -210,6 +210,5 @@ def Strecke(Port1,Port2):
     #df = df[["$Value"]]
     df = df.reset_index(drop=True)
 
-    fig = px.bar(df, x="Year", y=df["$Value"],template="none", labels={"Date": "Datum"},color_discrete_sequence=['#4169E1'])
-    fig.update_layout(plot_bgcolor='#D3D3D3')
+    fig = px.bar(df, x="Year", y=df["$Value"],template="plotly_dark", labels={"Date": "Datum"},color_discrete_sequence=['#4169E1'])
     return fig

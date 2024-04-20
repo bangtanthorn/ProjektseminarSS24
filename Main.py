@@ -9,8 +9,8 @@ app = dash.Dash(__name__, use_pages=True)
 
 #Definieren von Farben
 colors = {
-    'background': '#121212',
-    'text': '#000000',
+    'background': '#000000',
+    'text': '#FFFFFF',
     "Button" : "#4169E1"
 }
 
@@ -33,7 +33,7 @@ app.layout = html.Div(
         dash.page_container
     ],
     #Style für das komplette Dash definieren
-    style={'background-color': "#D3D3D3",
+    style={'background-color': "#121212",
           'background-size': '100%',
           'position': 'fixed',
           'width': '100%',
