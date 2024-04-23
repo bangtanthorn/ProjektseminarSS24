@@ -2,6 +2,7 @@ import dash
 from dash import dcc, html, Input, Output, State
 import plotly.express as px
 import pandas as pd
+from dash import html, callback
 
 
 df = pd.read_csv('AUS_Fares_March2024.csv')
@@ -10,9 +11,14 @@ df_cleaned = df[['Year', 'Month', 'Route', '$Value', '$Real']].copy()
 unique_routes = df_cleaned['Route'].unique()
 unique_years = df_cleaned['Year'].unique()
 
-app = dash.Dash(__name__)
+#app = dash.Dash(__name__)
 
-app.layout = html.Div([
+#dash.register_page(__name__, path='/')
+
+dash.register_page(__name__, name = "Zweite Seite")
+
+
+layout = html.Div([
     html.H1("Flugpreisanalyse-Dashboard"),
     html.Div([
         html.Div([
@@ -41,12 +47,14 @@ app.layout = html.Div([
     dcc.Graph(id='average-price-bar')
 ])
 
-@app.callback(
+@callback(
     Output('price-time-series', 'figure'),
     Output('average-price-bar', 'figure'),
     [Input('route-dropdown', 'value'),
      Input('year-slider', 'value')]
 )
+
+
 def update_graph(selected_route, selected_year):
 
     filtered_data = df_cleaned[(df_cleaned['Route'] == selected_route) & (df_cleaned['Year'] == selected_year)]
@@ -60,5 +68,5 @@ def update_graph(selected_route, selected_year):
     
     return line_fig, bar_fig
 
-if __name__ == '__main__':
-    app.run_server(debug=True)
+#if __name__ == '__main__':
+   # app.run_server(debug=True)
