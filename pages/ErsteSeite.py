@@ -6,6 +6,8 @@ from dash.dependencies import Input, Output, State
 import plotly.express as px
 import dash
 import seaborn as sns
+import dash_bootstrap_components as dbc
+import plotly.graph_objs as go
 
 
 #Erstellung vom Dataframe und Bereinigung 
@@ -22,7 +24,7 @@ print(unique_values)
 
 
 
-dash.register_page(__name__, path='/')
+dash.register_page(__name__, path='/', name = "Fluganalyse1")
 
 
 
@@ -111,7 +113,8 @@ layout = html.Div([
                 style={'width': '30%',
                "margin-left": "auto", 
                "margin-right" : "auto", 
-                "display" : "block"},
+                "display" : "block",
+                "color": "black"},
             ),
             html.P("Ankunft:", style={'font-size': '30px', 'color': '#FFFFFF'}),
 
@@ -156,12 +159,13 @@ layout = html.Div([
             style={'width': '30%',
             "margin-left": "auto", 
             "margin-right" : "auto", 
-            "display" : "block"},
+            "display" : "block",
+            "color": "black"},
             ),
             html.H1("", style={'font-size': '30px', 'color': '#FFFFFF'}),
             html.H1("", style={'font-size': '30px', 'color': '#FFFFFF'}),
 
-            dcc.Graph(id="time-series-chart", style = {'width': '50%', "height" : '60%', "margin-left": "auto", "margin-right" : "auto", "display" : "block"}),
+            dcc.Graph(id="time-series-chart", style = {'width': '60%', "height" : '70%', "margin-left": "auto", "margin-right" : "auto", "display" : "block", "color":"#696969"}),
             
         ])
     ])
@@ -210,5 +214,7 @@ def Strecke(Port1,Port2):
     #df = df[["$Value"]]
     df = df.reset_index(drop=True)
 
-    fig = px.bar(df, x="Year", y=df["$Value"],template="plotly_dark", labels={"Date": "Datum"},color_discrete_sequence=['#4169E1'])
+    fig = px.bar(df, x="Year", y=df["$Value"],template="plotly_dark", labels={"Date": "Datum"},color_discrete_sequence=['#C0C0C0'])
+    fig.add_trace(go.Scatter(x=df["Year"], y=df["$Value"], mode='lines', line=dict(color='red')))
+
     return fig

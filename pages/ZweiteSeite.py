@@ -3,7 +3,9 @@ from dash import dcc, html, Input, Output, State
 import plotly.express as px
 import pandas as pd
 from dash import html, callback
+import dash_bootstrap_components as dbc
 
+dash.register_page(__name__,path = "/ZweiteSeite", name = "Fluganalyse2")
 
 df = pd.read_csv('AUS_Fares_March2024.csv')
 df_cleaned = df[['Year', 'Month', 'Route', '$Value', '$Real']].copy()
@@ -15,7 +17,7 @@ unique_years = df_cleaned['Year'].unique()
 
 #dash.register_page(__name__, path='/')
 
-dash.register_page(__name__, name = "Zweite Seite")
+#dash.register_page(__name__, name = "Fluganalyse2")
 
 
 layout = html.Div([
@@ -28,7 +30,7 @@ layout = html.Div([
                 options=[{'label': route, 'value': route} for route in unique_routes],
                 value=unique_routes[0]  # Standardwert ist die erste Route
             ),
-        ], style={'width': '48%', 'display': 'inline-block'}),
+        ], style={'width': '48%', 'display': 'inline-block', "color": "black"}),
         
         html.Div([
             html.Label('Wähle ein Jahr:'),
