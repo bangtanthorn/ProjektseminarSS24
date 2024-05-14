@@ -19,10 +19,10 @@ colors = {
 
 topbar = dbc.Nav(
     [
-        dbc.NavItem(dbc.NavLink("Fluganalyse1", href="/", style={"font-size": "20px", 'font-family': 'Constantia'})),
-        dbc.NavItem(dbc.NavLink("Fluganalyse2", href="/ZweiteSeite", style={"font-size": "20px", 'font-family': 'Constantia'})),
+        dbc.NavItem(dbc.NavLink("Fluganalyse1", href="/", style={"font-size": "25px", 'font-family': 'Constantia'})),
+        dbc.NavItem(dbc.NavLink("Fluganalyse2", href="/ZweiteSeite", style={"font-size": "25px", 'font-family': 'Constantia'})),
         dbc.Col(html.P(""), width=1),
-        dbc.Col(html.P("Abflug:"), style={"font-size": "20px", "margin-left": "-60px", "margin-right" : "auto", 'font-family': 'Constantia'}),
+        dbc.Col(html.P("Abflug:"), style={"font-size": "25px", "margin-left": "800px", 'font-family': 'Constantia'}),
         dbc.Col(
             dcc.Dropdown(
                 options=[
@@ -61,16 +61,17 @@ topbar = dbc.Nav(
                 ],
                 value="Adelaide",
                 id="Port3",
-                style={'width': '55%',
-                       "margin-left": "-60px", 
-                       "margin-right" : "auto", 
+                style={'width': '70%',
+                       "margin-left": "-50px", 
+                       #"margin-right" : "auto", 
                        "display" : "block",
-                       "color": "black"
-                       ,'font-family': 'Constantia'},
+                       "color": "black",
+                       'font-family': 'Constantia',
+                       "font-size": "20px"},
             ),
         
         ),
-        dbc.Col(html.P("Ankunft:", style={"font-size": "20px", 'font-family': 'Constantia'}), width=1),
+        dbc.Col(html.P("Ankunft:", style={"font-size": "25px", 'font-family': 'Constantia'}), width=1),
      dbc.Col(
             dcc.Dropdown(
                 options=[
@@ -109,12 +110,13 @@ topbar = dbc.Nav(
                 ],
                 value="Brisbane",
                 id="Port4",
-                style={'width': '55%',
+                style={'width': '70%',
                        "margin-left": "-15px", 
-                       "margin-right" : "auto", 
+                       #"margin-right" : "auto", 
                        "display" : "block",
                        "color": "black",
-                       'font-family': 'Constantia'},
+                       'font-family': 'Constantia',
+                       "font-size": "20px"},
             ),
         )
     ],
@@ -126,13 +128,12 @@ topbar = dbc.Nav(
 
 
 
-app.layout = html.Div(
-    [
+app.layout = dbc.Container([
 
         html.Div(
-        html.H1("Dashboard: Flugpreise", style={'fontSize':70, 'textAlign':'center', 'color': colors['text'], 'font-family': 'Constantia', 'fontWeight': 'normal'})),
+        html.H1("Flugpreisanalyse", style={'fontSize':70, 'textAlign':'center', 'color': colors['text'], 'font-family': 'Constantia', 'fontWeight': 'normal'})),
         html.Hr(),
-        html.P("Wähle eine Strecke aus:", style={'font-size': '30px','color': '#FFFFFF', 'font-family': 'Constantia'}),
+        #html.P("Wähle eine Strecke aus:", style={'font-size': '30px','color': '#FFFFFF', 'font-family': 'Constantia'}),
         dbc.Row(        
             dbc.Col(
                 [
@@ -163,7 +164,7 @@ app.layout = html.Div(
           "overflow":"Scroll"
 
           }
-)
+, fluid = True)
 
 @callback(
     Output("Port4", "options"),

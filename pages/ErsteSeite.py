@@ -8,14 +8,20 @@ import dash
 import seaborn as sns
 import dash_bootstrap_components as dbc
 import plotly.graph_objs as go
+from datetime import date
+from datetime import datetime
+import geosphere
+from geopy.distance import geodesic
+from dash import dash_table
+
 
 
 #Erstellung vom Dataframe und Bereinigung 
-df = pd.read_csv("AUS_Fares_March2024.csv", sep=',')
-df = df[["Year","Month","YearMonth","Port1","Port2","Route","$Value","$Real"]]
+#df = pd.read_csv("AUS_Fares_March2024.csv", sep=',')
+#df = df[["Year","Month","YearMonth","Port1","Port2","Route","$Value","$Real"]]
 #print(df.info())
-unique_values = df['Port1'].unique()
-print(unique_values)
+#unique_values = df['Port1'].unique()
+#print(unique_values)
 
 dash.register_page(__name__, path='/', name = "Fluganalyse1")
 
@@ -59,51 +65,100 @@ colors = {
     "Button" : "#4169E1"
 }
 
+table_columns = [
+    {'name': 'Year', 'id': 'Year', },
+    {'name': 'Month', 'id': 'Month'},
+    {'name': '$Value', 'id': '$Value'}
+]
+
 
 layout = html.Div([
-    # Zwei leere Zeilen um Abstand zu bilden
-    
-    html.H1("", style={'font-size': '30px', 'color': '#FFFFFF'}),
-    html.H1("", style={'font-size': '30px', 'color': '#FFFFFF'}),
-    # Layout und style für die Auswahl der Prognosemodelle in Form von einem Dropdown 
-    
-html.Div([
-    dcc.Dropdown(
-        id='year-dropdown',
-         options=(
-            [{'label': 'Insgesamt', 'value': 'Insgesamt'}] + [{'label': str(year), 'value': year} for year in df['Year'].unique()]
-        ),
-        value='Insgesamt',  # Standardmäßig "Insgesamt" auswählen
-        clearable=False,  
-        style={'width': '55%', 
-               "display" : "block",
-               "color": "black",
-               'font-family': 'Constantia'},
-    )
-]),
-    
     html.Div([
         html.Div([
-            html.H1("", style={'font-size': '30px', 'color': '#FFFFFF'}),
-            #html.P("Abflug:", style={'font-size': '30px', 'color': '#FFFFFF'}),
-            
-          
-            html.H1("", style={'font-size': '30px', 'color': '#FFFFFF'}),
-            html.H1("", style={'font-size': '30px', 'color': '#FFFFFF'}),
+        html.P(""),     
+        html.P(""),  
+        html.Div([  
+        html.P("Wählen Sie einen Zeitraum: ", style={"font-size": "25px","margin-right": "2150px", "margin-top": "100px",'font-family': 'Constantia'}),
+        dcc.DatePickerRange(
+            id="year-picker",
+            min_date_allowed=date(2010, 1, 1),
+            max_date_allowed=date.today(),
+            start_date=date(2010, 1, 1),
+            end_date=date.today(),
+            display_format='YYYY',
+            style={"textAlign": "center", "vertical-align": "top", "margin-right": "2150px", "height": "40%"}
+        ),
 
-            
+        html.Div([
+        # html.P("Fluginfos: ", style={"font-size": "30px", "margin-top": "100px"}),
+        # html.Br(),
+        # html.P("Distanz:", style={'font-size': '20px', 'color': colors['text']}),
+        # html.Div([
+        #     html.Span("Land: ", style={'font-size': '20px', 'color': colors['text']}),
+        #     html.Span(id="Distanz",style={'font-size': '20px','color': colors['Button']})
+        # ], style={'display': 'inline-block', 'margin-bottom': '15px'}),
+        # html.Br(),
+        #html.Div([
+        #html.Span("City: ", style={'font-size': '25px', 'color': colors['text']}),
+        #html.Span(id="Land", style={'font-size': '25px','color': colors['Button']})
+        #], style={'display': 'inline-block', 'margin-bottom': '15px'}),
+        ], style={"margin-right": "2200px" })
+        ]),
 
-            dcc.Graph(id="time-series-chart", style = {'width': '60%', "height" : '70%', "margin-left": "auto", "margin-right" : "auto", "display" : "block", "color":"#696969"}),
-           
-            html.Div([
-               
-               
-                dcc.Graph(id="Liniendiagramm", style = {'width': '60%', "height" : '70%', "margin-left": "auto", "margin-right" : "auto", "display" : "block", "color":"#696969"})
+
+        ]),
+        html.P(""),   
+        html.P(""),   
+        html.Div([
+        html.Div([
+            dcc.Graph(
+                id="time-series-chart",
+                style={'width': '50%', "height": '80%', "margin-left": "auto",
+                       "margin-right": "auto", "color": "#696969", "margin-top": "-70px"}
+            ),
+            dcc.Graph(
+                id="Liniendiagramm",
+                style={'width': '50%', "height": '80%', "margin-left": "auto",
+                       "margin-right": "auto", "color": "#696969", "margin-top": "-10px"}
+            )
+        ], style={"vertical-align": "top", "margin-left": "-100"}),
+       dash_table.DataTable(
+            id='table', 
+            data=[], 
+            columns=table_columns, 
+            style_cell={
+                'textAlign': 'center', 
+                'color': '#FFFFFF', 
+                'background': colors["background"], 
+                'font_size': '15px',
+                'font-family': 'Constantia'
+            },
+            style_header={
+                'backgroundColor': '#4169E1',
+                'padding': '10px',
+                'color': '#FFFFFF', 
+                'font-family': 'Constantia'
+            },
+            style_data_conditional=[
+                {
+            'if': {'column_id': c},
+            'minWidth': '20px',  # Hier können Sie die Breite anpassen
+            'maxWidth': '50px',  # Hier können Sie die Breite anpassen
+            'width': '30px',     # Hier können Sie die Breite anpassen
+             } for c in ['Year', 'Month', '$Value']  # Geben Sie die Spalten an, für die Sie die Breite ändern möchten
+            ],
+            style_table={
+                'maxHeight': '850px',  # Hier können Sie die maximale Höhe der Tabelle festlegen
+                'overflowY': 'scroll',
+                "margin-top": "-850px",
+                "margin-left": "2150px"     # Aktiviert die vertikale Scrollbar
+            },
+            fill_width=False
+            )
             ])
-        ])
     ])
-],
-
+])
+   
 #Weitere Style-Eigenschaften definieren
 style={'background-color': "#121212",
       'background-size': '100%',
@@ -112,22 +167,40 @@ style={'background-color': "#121212",
       'font-family': 'Constantia',
 
       }
-)
-
-#@callback(
-#    Output("Port2", "options"),
-#    Input("Port1", "value")
-#)
 
 
-#def update_port2_options(selected_port1):
-    #df = pd.read_csv("AUS_Fares_March2024.csv", sep=',')
-    #df = df[["Year","Port1","Port2","$Value"]]
-    #filtered_df = df[df["Port1"] == selected_port1]
-    #port2_options = [{"label": port, "value": port} for port in filtered_df["Port2"].unique()]
+# @callback(
+#     Output(component_id= "Distanz", component_property="children"),
+#     Output(component_id= "Land", component_property="children"),
+#     Input(component_id= "flight_Abflug", component_property="data"),
+#     Input(component_id= "flight_Ankunft", component_property="data"),
+# )
 
-    #return port2_options
 
+# def Fluginfo(flight_Abflug, flight_Ankunft):
+
+#     # Lese die Flughafendaten ein
+#     airports = pd.read_csv("https://raw.githubusercontent.com/jpatokal/openflights/master/data/airports.dat", header=None, sep=',')
+#     # Benenne die Spalten um
+#     airports.columns = ["ID", "Name", "City", "Country", "IATA", "ICAO", "Latitude", "Longitude", "Altitude", "Timezone", "DST", "Tz database time zone", "Type", "Source"]
+#     # Filtern Sie die Zeile für Gatwick
+#     Port_1 = airports[airports["Name"] == flight_Abflug]
+#     Port_1 = Port_1.reset_index(drop=True)
+#     # Extrahieren Sie die Longitude und Latitude Werte
+#     Port_1 = (Port_1["Latitude"].iloc[0], Port_1["Longitude"].iloc[0])
+   
+
+#     Port_2 = airports[airports["Name"] == flight_Ankunft]
+#     # Extrahieren Sie die Longitude und Latitude Werte
+#     Port_2 = (Port_2["Latitude"].iloc[0], Port_2["Longitude"].iloc[0])
+
+#     # Berechne die Entfernung zwischen Gatwick und Heathrow
+#     distance = geodesic(Port_2, Port_2).kilometers
+
+
+#     Land = (Port_2["Land"].iloc[0])
+
+#     return distance, Land
 
 
 
@@ -135,16 +208,27 @@ style={'background-color': "#121212",
     Output(component_id= "time-series-chart", component_property="figure"),
     Input(component_id= "flight_Abflug", component_property="data"),
     Input(component_id= "flight_Ankunft", component_property="data"),
+    Input('year-picker',component_property= "start_date"),  
+    Input('year-picker',component_property= "end_date")
 )
 
-def Strecke(flight_Abflug,flight_Ankunft):
-
+def Strecke(flight_Abflug, flight_Ankunft, start_date, end_date):
     df = pd.read_csv("AUS_Fares_March2024.csv", sep=',')
-    df = df[["Year","Month","YearMonth","Port1","Port2","Route","$Value","$Real"]]
+    df = df[["Year", "Month", "YearMonth", "Port1", "Port2", "Route", "$Value", "$Real"]]
     df = df[(df["Port1"] == flight_Abflug) & (df["Port2"] == flight_Ankunft)]
     df = df.reset_index(drop=True)
-    fig = px.bar(df, x="Year", y=df["$Value"],template="plotly_dark", labels={"Date": "Datum"},color_discrete_sequence=["#ff0000"])
-    #fig.add_trace(go.Scatter(x=df["Year"], y=df["$Value"], mode='lines', line=dict(color='red')))
+
+    # Extrahiere das Jahr aus den Datumsangaben und wandele sie in Integer um
+    start_year = datetime.strptime(start_date, "%Y-%m-%d").year
+    end_year = datetime.strptime(end_date, "%Y-%m-%d").year
+
+    filtered_df = df.loc[(df["Year"] >= start_year) & (df["Year"] < end_year)]
+
+    # Gruppiere nach Jahr und erhalte das Maximum für jedes Jahr
+    max_values = filtered_df.groupby("Year")["$Value"].max().reset_index()
+
+    fig = px.bar(max_values, x="Year", y="$Value", template="plotly_dark",
+                 labels={"Year": "Jahr", "$Value": "Wert"}, color_discrete_sequence=["#ff0000"])
 
     return fig
 
@@ -153,14 +237,73 @@ def Strecke(flight_Abflug,flight_Ankunft):
     Output(component_id= "Liniendiagramm", component_property="figure"),
     Input(component_id= "flight_Abflug", component_property="data"),
     Input(component_id= "flight_Ankunft", component_property="data"),
-    Input('year-dropdown', 'value'),  
+    Input('year-picker',component_property= "start_date"),  
+    Input('year-picker',component_property= "end_date")
 )
-def Strecke(flight_Abflug, flight_Ankunft, selected_year, ):
-    df = pd.read_csv("AUS_Fares_March2024.csv", sep=',')
+
+def Strecke(flight_Abflug, flight_Ankunft, start_date, end_date):
+    df = pd.read_csv("AUS_Fares_March2024.csv", sep=',', dtype={"Year": int})
     df = df[["Year", "Month", "YearMonth", "Port1", "Port2", "Route", "$Value", "$Real"]]
     df = df[(df["Port1"] == flight_Abflug) & (df["Port2"] == flight_Ankunft)]
 
+    # Extrahiere das Jahr aus den Datumsangaben und wandele sie in Integer um
+    start_year = datetime.strptime(start_date, "%Y-%m-%d").year
+    end_year = datetime.strptime(end_date, "%Y-%m-%d").year
+    
+    filtered_df = df.loc[(df["Year"] >= start_year) & (df["Year"] < end_year)]
 
-    fig = px.line(df, x="Month", y="$Value", title=f'Jährliche monatliche Preise für {selected_year}',
-                  labels={"Month": "Monat", "$Value": "Wert"}, template="plotly_dark")
+    # Maximum und Minimum pro Jahr extrahieren
+    max_values = filtered_df.groupby("Year")["$Value"].max()
+    min_values = filtered_df.groupby("Year")["$Value"].min()
+
+    # Plot für das Maximum erstellen
+    max_line = go.Scatter(x=max_values.index, y=max_values.values, mode='lines', name='Maximalwert')
+
+    # Plot für das Minimum erstellen
+    min_line = go.Scatter(x=min_values.index, y=min_values.values, mode='lines', name='Minimalwert')
+
+    # Figur erstellen und Linien hinzufügen
+    fig = go.Figure([max_line, min_line])
+
+    fig.update_layout(
+    title="Maximum und Minimumpreise für die Strecke: {} & {}".format(flight_Abflug, flight_Ankunft),
+    xaxis=dict(title="Year"),
+    yaxis=dict(title="$Value"),
+    template="plotly_dark"
+    )
+
+    # fig = px.line(filtered_df, x="Year", y="$Value",
+            #labels={"Year": "Year", "$Value": "Wert"}, template="plotly_dark", mode = "lines")
     return fig
+
+#Funktion/Callback um die Tabelle mit den historischen Daten zu generieren
+@callback(Output(component_id='table', component_property='data'),
+         Input(component_id= "flight_Abflug", component_property="data"),
+         Input(component_id= "flight_Ankunft", component_property="data"),
+         Input('year-picker',component_property= "start_date"),  
+         Input('year-picker',component_property= "end_date")
+        )
+
+
+def table(flight_Abflug, flight_Ankunft, start_date, end_date):
+    monatsnamen = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"]
+    
+    # Lese die CSV-Datei in ein DataFrame
+    df = pd.read_csv("AUS_Fares_March2024.csv", sep=',', dtype={"Year": int})
+    
+    # Auswahl der relevanten Spalten
+    df = df[["Year", "Month", "Port1", "Port2", "Route", "$Value"]]
+    
+    start_year = datetime.strptime(start_date, "%Y-%m-%d").year
+    end_year = datetime.strptime(end_date, "%Y-%m-%d").year
+    # Konvertiere "start_date" und "end_date" in numerische Werte
+    start_date = int(start_year)
+    end_date = int(end_year)
+    
+    # Filtere nach Abflug- und Ankunftsort und Zeitraum
+    filtered_df = df.loc[(df["Year"] >= start_date) & (df["Year"] < end_date)]
+    
+    # Konvertiere numerische Monatswerte in Monatsnamen
+    filtered_df["Month"] = filtered_df["Month"].apply(lambda x: monatsnamen[x-1])
+    
+    return filtered_df.to_dict('records')
