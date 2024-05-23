@@ -1,4 +1,3 @@
-#Imports definieren
 import dash
 from dash import html, dcc
 import dash_bootstrap_components as dbc
@@ -7,20 +6,19 @@ import pandas as pd
 from dash.dependencies import Input, Output, State
 
 # Erstelle eine Dash-App und aktiviere die Verwendung von Seiten (use_pages=True)
-app = dash.Dash(__name__, use_pages=True, external_stylesheets = [dbc.themes.DARKLY])
+app = dash.Dash(__name__, use_pages=True, suppress_callback_exceptions=True, external_stylesheets=[dbc.themes.DARKLY])
 
-
-#Definieren von Farben
+# Definieren von Farben
 colors = {
     'background': '#000000',
     'text': '#FFFFFF',
-    "Button" : "#4169E1"
+    "Button": "#4169E1"
 }
 
 topbar = dbc.Nav(
     [
         dbc.NavItem(dbc.NavLink("Fluganalyse1", href="/", style={"font-size": "25px", 'font-family': 'Constantia'})),
-        dbc.NavItem(dbc.NavLink("Fluganalyse2", href="/ZweiteSeite", style={"font-size": "25px", 'font-family': 'Constantia'})),
+        dbc.NavItem(dbc.NavLink("Fluganalyse2", href="/zweite-seite", style={"font-size": "25px", 'font-family': 'Constantia'})),
         dbc.Col(html.P(""), width=1),
         dbc.Col(html.P("Abflug:"), style={"font-size": "25px", "margin-left": "800px", 'font-family': 'Constantia'}),
         dbc.Col(
@@ -54,17 +52,16 @@ topbar = dbc.Nav(
                     {"label": "Newcastle", "value": "Newcastle"},
                     {"label": "Paraburdoo", "value": "Paraburdoo"},
                     {"label": "Perth", "value": "Perth"},
-                    {"label": "Port Macquari", "value": "Port Macquarie"},
-                    {"label": "Proserpine", "value": "Paraburdoo"},
+                    {"label": "Port Macquarie", "value": "Port Macquarie"},
+                    {"label": "Proserpine", "value": "Proserpine"},
                     {"label": "Sunshine Coast", "value": "Sunshine Coast"},
                     {"label": "Sydney", "value": "Sydney"}
                 ],
                 value="Adelaide",
                 id="Port3",
                 style={'width': '70%',
-                       "margin-left": "-50px", 
-                       #"margin-right" : "auto", 
-                       "display" : "block",
+                       "margin-left": "-50px",
+                       "display": "block",
                        "color": "black",
                        'font-family': 'Constantia',
                        "font-size": "20px"},
@@ -72,7 +69,7 @@ topbar = dbc.Nav(
         
         ),
         dbc.Col(html.P("Ankunft:", style={"font-size": "25px", 'font-family': 'Constantia'}), width=1),
-     dbc.Col(
+        dbc.Col(
             dcc.Dropdown(
                 options=[
                     {"label": "Adelaide", "value": "Adelaide"},
@@ -103,17 +100,16 @@ topbar = dbc.Nav(
                     {"label": "Newcastle", "value": "Newcastle"},
                     {"label": "Paraburdoo", "value": "Paraburdoo"},
                     {"label": "Perth", "value": "Perth"},
-                    {"label": "Port Macquari", "value": "Port Macquarie"},
-                    {"label": "Proserpine", "value": "Paraburdoo"},
+                    {"label": "Port Macquarie", "value": "Port Macquarie"},
+                    {"label": "Proserpine", "value": "Proserpine"},
                     {"label": "Sunshine Coast", "value": "Sunshine Coast"},
                     {"label": "Sydney", "value": "Sydney"}
                 ],
                 value="Brisbane",
                 id="Port4",
                 style={'width': '70%',
-                       "margin-left": "-15px", 
-                       #"margin-right" : "auto", 
-                       "display" : "block",
+                       "margin-left": "-15px",
+                       "display": "block",
                        "color": "black",
                        'font-family': 'Constantia',
                        "font-size": "20px"},
@@ -126,59 +122,51 @@ topbar = dbc.Nav(
     style={"color": "#A9A9A9"}
 )
 
-
-
 app.layout = dbc.Container([
 
         html.Div(
-        html.H1("Flugpreisanalyse", style={'fontSize':70, 'textAlign':'center', 'color': colors['text'], 'font-family': 'Constantia', 'fontWeight': 'normal'})),
+        html.H1("Flugpreisanalyse", style={'fontSize': 70, 'textAlign': 'center', 'color': colors['text'], 'font-family': 'Constantia', 'fontWeight': 'normal'})),
         html.Hr(),
-        #html.P("Wähle eine Strecke aus:", style={'font-size': '30px','color': '#FFFFFF', 'font-family': 'Constantia'}),
         dbc.Row(        
             dbc.Col(
                 [
-                    topbar #Fügt oben definierte Bar ein
+                    topbar  # Fügt oben definierte Bar ein
                 ])),
-        dash.page_container #Fügt definierte Seitennamen und Referenzen ein
-            ,
+        dash.page_container,  # Fügt definierte Seitennamen und Referenzen ein
         html.Hr(),
             dbc.Row(
         dbc.Col(
              [
-                dcc.Store(id = "flight_Abflug"),
-                dcc.Store(id = "flight_Ankunft") #Speicher des geladenen Aktien Tickers (Informationen über die gewählte Aktie)
+                dcc.Store(id="flight_Abflug"),
+                dcc.Store(id="flight_Ankunft")  # Speicher des geladenen Aktien Tickers (Informationen über die gewählte Aktie)
              ]
         ))
     ], 
-    #Style für das komplette Dash definieren
     style={'background-color': "#121212",
           'background-size': '100%',
           'position': 'fixed',
           'width': '100%',
           'height': '100%',
           'font-family': 'Rockwell',
-          "display" : "block" , 
+          "display": "block", 
           "margin-left": "auto",
           "margin-right": "auto",
           'textAlign': 'center',
-          "overflow":"Scroll"
-
+          "overflow": "scroll"
           }
-, fluid = True)
+, fluid=True)
 
 @callback(
     Output("Port4", "options"),
     Input("Port3", "value")
 )
-
 def update_port2_options(selected_port1):
     df = pd.read_csv("AUS_Fares_March2024.csv", sep=',')
-    df = df[["Year","Port1","Port2","$Value"]]
+    df = df[["Year", "Port1", "Port2", "$Value"]]
     filtered_df = df[df["Port1"] == selected_port1]
     port2_options = [{"label": port, "value": port} for port in filtered_df["Port2"].unique()]
 
     return port2_options
-
 
 @callback(
     Output("flight_Abflug", "data"),
@@ -188,16 +176,12 @@ def update_port2_options(selected_port1):
 )
 def update_flight_store(Port3, Port4):
     df = pd.read_csv("AUS_Fares_March2024.csv", sep=',')
-    df = df[["Year","Month","YearMonth","Port1","Port2","Route","$Value","$Real"]]
+    df = df[["Year", "Month", "YearMonth", "Port1", "Port2", "Route", "$Value", "$Real"]]
     df = df[(df["Port1"] == Port3) & (df["Port2"] == Port4)]
     df = df.reset_index(drop=True)
-    
 
     return Port3, Port4
 
-
-
-#Starte die Dash-App, falls dieses Skript direkt ausgeführt wird
+# Starte die Dash-App, falls dieses Skript direkt ausgeführt wird
 if __name__ == "__main__":
-
-     app.run(debug=True)
+    app.run(debug=True)

@@ -1,12 +1,16 @@
 import dash
-from dash import dcc, html, Input, Output, dash_table
-import plotly.graph_objects as go
-import plotly.express as px
-import pandas as pd
+from dash import html, dcc, callback
 import dash_bootstrap_components as dbc
-import os
+from dash.dependencies import Input, Output
+import pandas as pd
+import plotly.express as px
+import plotly.graph_objects as go
 import numpy as np
 import random
+import os
+import dash_table
+
+dash.register_page(__name__, path='/zweite-seite', name="Fluganalyse2")
 
 def haversine(lon1, lat1, lon2, lat2):
     lon1, lat1, lon2, lat2 = map(np.radians, [lon1, lat1, lon2, lat2])
@@ -42,9 +46,7 @@ colors = ['red', 'blue', 'green', 'orange', 'purple', 'yellow']
 # Zufällige Auswahl von Farben für jeden Flughafen
 airport_colors = [random.choice(colors) for _ in range(len(df_airports))]
 
-app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
-
-app.layout = html.Div([
+layout = html.Div([
     html.H1("Fluganalyse-Dashboard", className="text-center mb-4"),
     html.Div([
         html.H2("Flugpreisanalyse und Flugrouten-Dashboard", className="text-center mb-3"),
@@ -83,7 +85,7 @@ app.layout = html.Div([
     ], className='container-fluid')
 ], className='container-fluid', style={'padding': '0px', 'margin': '0px'})
 
-@app.callback(
+@callback(
     Output('destination-dropdown', 'options'),
     Input('origin-dropdown', 'value')
 )
@@ -91,7 +93,7 @@ def set_destination_options(selected_origin):
     destinations = df_cleaned[df_cleaned['Origin'] == selected_origin]['Destination'].unique()
     return [{'label': dest, 'value': dest} for dest in destinations if dest in common_airports]
 
-@app.callback(
+@callback(
     Output('destination-dropdown', 'value'),
     Input('destination-dropdown', 'options')
 )
@@ -100,7 +102,7 @@ def set_default_destination(options):
         return options[0]['value']
     return None
 
-@app.callback(
+@callback(
     [Output('price-time-series', 'figure'),
      Output('average-price-bar', 'figure'),
      Output('price-heatmap', 'figure'),
@@ -198,6 +200,3 @@ def update_graph_and_map(selected_origin, selected_destination, selected_year):
         return line_fig, bar_fig, heatmap_fig, flight_route_map, distance_text, summary_table
     except Exception as e:
         return go.Figure(), go.Figure(), go.Figure(), go.Figure(), f"Fehler: {str(e)}", "Statistische Daten nicht verfügbar"
-
-if __name__ == '__main__':
-    app.run_server(debug=True)
