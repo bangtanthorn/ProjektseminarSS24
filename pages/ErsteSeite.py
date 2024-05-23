@@ -46,6 +46,7 @@ tab_style = {
     'borderTop': '3px solid ##4169E1',
     'padding': '6px',
     'fontWeight': 'bold',
+    'font_size': '50px',
     'background-color': "#121212",
     'color': "#4169E1",
 }
@@ -90,8 +91,20 @@ layout = html.Div([
         ),
 
         html.Div([
-        # html.P("Fluginfos: ", style={"font-size": "30px", "margin-top": "100px"}),
-        # html.Br(),
+        html.Div([
+        html.P("Auswahl: ", style={"font-size": "30px", "margin-top": "500px", 'font-family': 'Constantia'}),
+        html.Br(),
+        dcc.Checklist(
+            id='price-type-checklist',
+            options={
+        'MAX': 'Maximalpreise',
+        'MIN': 'Minimalpreise',
+        'DURCH': 'Durchschnittspreise'
+        },
+        value=['MAX'],
+        style={"font-size": "25px", "margin-top": "30px", 'font-family': 'Constantia'}
+            )
+        ]),
         # html.P("Distanz:", style={'font-size': '20px', 'color': colors['text']}),
         # html.Div([
         #     html.Span("Land: ", style={'font-size': '20px', 'color': colors['text']}),
@@ -111,17 +124,39 @@ layout = html.Div([
         html.P(""),   
         html.Div([
         html.Div([
-            dcc.Graph(
+
+
+        
+
+        dcc.Graph(
                 id="time-series-chart",
                 style={'width': '50%', "height": '80%', "margin-left": "auto",
-                       "margin-right": "auto", "color": "#696969", "margin-top": "-70px"}
+                       "margin-right": "auto", "color": "#696969", "margin-top": "-850px"}
             ),
+
+        dcc.Tabs(id='tabs', value="Liniendiagramm", children=[
+        dcc.Tab(label='Liniendiagramm', value='Liniendiagramm', children=[], style=tab_style, selected_style=tab_selected_style),
+        dcc.Tab(label='Scatter-Plot', value='Scatter-Plot', children=[], style=tab_style, selected_style=tab_selected_style)],
+        
+        style = {'width': '50%',
+                 'font-size': '80%',
+                 'height': "90%",
+                 "margin-left": "auto", 
+                 "margin-right" : "auto", 
+                 "display" : "block",
+                 "margin-top": "20px",
+                 #"margin-top": "-117px",
+                 'font_size': '20px',
+                'font-family': 'Constantia'
+                 
+                 }),
             dcc.Graph(
                 id="Liniendiagramm",
                 style={'width': '50%', "height": '80%', "margin-left": "auto",
-                       "margin-right": "auto", "color": "#696969", "margin-top": "-10px"}
+                       "margin-right": "auto", "color": "#696969", "margin-top": "40px"}
+                       #"margin-top": "-10px"
             )
-        ], style={"vertical-align": "top", "margin-left": "-100"}),
+        ], style={"vertical-align": "top", "margin-left": "-100","margin-top": "-600" }),
        dash_table.DataTable(
             id='table', 
             data=[], 
@@ -148,9 +183,9 @@ layout = html.Div([
              } for c in ['Year', 'Month', '$Value']  # Geben Sie die Spalten an, für die Sie die Breite ändern möchten
             ],
             style_table={
-                'maxHeight': '850px',  # Hier können Sie die maximale Höhe der Tabelle festlegen
+                'maxHeight': '920px',  # Hier können Sie die maximale Höhe der Tabelle festlegen
                 'overflowY': 'scroll',
-                "margin-top": "-850px",
+                "margin-top": "-920px",
                 "margin-left": "2150px"     # Aktiviert die vertikale Scrollbar
             },
             fill_width=False
@@ -209,7 +244,8 @@ style={'background-color': "#121212",
     Input(component_id= "flight_Abflug", component_property="data"),
     Input(component_id= "flight_Ankunft", component_property="data"),
     Input('year-picker',component_property= "start_date"),  
-    Input('year-picker',component_property= "end_date")
+    Input('year-picker',component_property= "end_date"),
+    
 )
 
 def Strecke(flight_Abflug, flight_Ankunft, start_date, end_date):
@@ -228,8 +264,8 @@ def Strecke(flight_Abflug, flight_Ankunft, start_date, end_date):
     max_values = filtered_df.groupby("Year")["$Value"].max().reset_index()
 
     fig = px.bar(max_values, x="Year", y="$Value", template="plotly_dark",
-                 labels={"Year": "Jahr", "$Value": "Wert"}, color_discrete_sequence=["#ff0000"])
-
+        labels={"Year": "Jahr", "$Value": "Wert"}, color_discrete_sequence=["#ff0000"])
+    
     return fig
 
 
@@ -238,10 +274,13 @@ def Strecke(flight_Abflug, flight_Ankunft, start_date, end_date):
     Input(component_id= "flight_Abflug", component_property="data"),
     Input(component_id= "flight_Ankunft", component_property="data"),
     Input('year-picker',component_property= "start_date"),  
-    Input('year-picker',component_property= "end_date")
+    Input('year-picker',component_property= "end_date"),
+    Input('price-type-checklist', 'value'),
+    Input('tabs', 'value'),
 )
 
-def Strecke(flight_Abflug, flight_Ankunft, start_date, end_date):
+def ZweiteStrecke(flight_Abflug, flight_Ankunft, start_date, end_date, selected_Price, tabs):
+
     df = pd.read_csv("AUS_Fares_March2024.csv", sep=',', dtype={"Year": int})
     df = df[["Year", "Month", "YearMonth", "Port1", "Port2", "Route", "$Value", "$Real"]]
     df = df[(df["Port1"] == flight_Abflug) & (df["Port2"] == flight_Ankunft)]
@@ -252,18 +291,70 @@ def Strecke(flight_Abflug, flight_Ankunft, start_date, end_date):
     
     filtered_df = df.loc[(df["Year"] >= start_year) & (df["Year"] < end_year)]
 
-    # Maximum und Minimum pro Jahr extrahieren
-    max_values = filtered_df.groupby("Year")["$Value"].max()
-    min_values = filtered_df.groupby("Year")["$Value"].min()
+    # Maximum und Minimum pro Jahr extrahiere
+    #min_values = filtered_df.groupby("Year")["$Value"].min()
 
-    # Plot für das Maximum erstellen
-    max_line = go.Scatter(x=max_values.index, y=max_values.values, mode='lines', name='Maximalwert')
+    #fig = go.Figure([max_line, min_line])
 
-    # Plot für das Minimum erstellen
-    min_line = go.Scatter(x=min_values.index, y=min_values.values, mode='lines', name='Minimalwert')
+    fig = go.Figure()
 
-    # Figur erstellen und Linien hinzufügen
-    fig = go.Figure([max_line, min_line])
+    if tabs == "Liniendiagramm": 
+
+        if 'MAX' in selected_Price:
+            # Plot für das Maximum erstellen
+            max_values = filtered_df.groupby("Year")["$Value"].max()
+            max_line = go.Scatter(x=max_values.index, y=max_values.values, mode='lines', name='Maximalwert')
+            fig.add_trace(max_line)
+    
+        if 'MIN' in selected_Price:
+            # Plot für das Minimum erstellen
+            min_values = filtered_df.groupby("Year")["$Value"].min()
+            min_line = go.Scatter(x=min_values.index, y=min_values.values, mode='lines', name='Minimalwert')
+            fig.add_trace(min_line)
+
+        if 'DURCH' in selected_Price:
+            # Plot für das Minimum erstellen
+            mean_values = filtered_df.groupby("Year")["$Value"].mean()
+            mean_line = go.Scatter(x=mean_values.index, y=mean_values.values, mode='lines', name='Durchschnittswert')
+            fig.add_trace(mean_line)
+            # Figur erstellen und Linien hinzufügen
+        
+    if tabs == "Scatter-Plot": 
+
+        if 'MAX' in selected_Price:
+            max_values = filtered_df.groupby("Year")["$Value"].max()
+            #fig = px.scatter(x=max_values.index, y=max_values.values)
+            fig.add_trace(go.Scatter(x=max_values.index, y=max_values.values, mode='markers', name='Maximalwert', marker=dict(
+                    size=10,
+                    #color='rgba(255, 0, 0, 0.6)',
+                    line=dict(
+                    width=2,
+                    color='DarkSlateGrey'
+                      
+                    ))))
+
+        if 'MIN' in selected_Price:
+            min_values = filtered_df.groupby("Year")["$Value"].min()
+            #fig = px.scatter(x=max_values.index, y=max_values.values)
+            fig.add_trace(go.Scatter(x=min_values.index, y=min_values.values, mode='markers', name='Minimalwert', marker=dict(
+                    size=10,
+                    #color='rgba(255, 0, 0, 0.6)',
+                    line=dict(
+                    width=2,
+                    color='DarkSlateGrey'
+                    ))))
+
+
+        if 'DURCH' in selected_Price:
+            mean_values = filtered_df.groupby("Year")["$Value"].mean()
+            #fig = px.scatter(x=max_values.index, y=max_values.values)
+            fig.add_trace(go.Scatter(x=mean_values.index, y=mean_values.values, mode='markers', name='Durchschnittswerte', marker=dict(
+                    size=10,
+                    #color='rgba(255, 0, 0, 0.6)',
+                    line=dict(
+                    width=2,
+                    color='DarkSlateGrey'
+                    ))))
 
     fig.update_layout(
     title="Maximum und Minimumpreise für die Strecke: {} & {}".format(flight_Abflug, flight_Ankunft),
@@ -272,8 +363,6 @@ def Strecke(flight_Abflug, flight_Ankunft, start_date, end_date):
     template="plotly_dark"
     )
 
-    # fig = px.line(filtered_df, x="Year", y="$Value",
-            #labels={"Year": "Year", "$Value": "Wert"}, template="plotly_dark", mode = "lines")
     return fig
 
 #Funktion/Callback um die Tabelle mit den historischen Daten zu generieren
