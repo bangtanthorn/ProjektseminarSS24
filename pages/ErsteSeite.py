@@ -69,7 +69,7 @@ colors = {
 table_columns = [
     {'name': 'Year', 'id': 'Year', },
     {'name': 'Month', 'id': 'Month'},
-    {'name': '$Value', 'id': '$Value'}
+    {'name': '$Real', 'id': '$Real'}
 ]
 
 
@@ -86,7 +86,7 @@ layout = html.Div([
             max_date_allowed=date.today(),
             start_date=date(2010, 1, 1),
             end_date=date.today(),
-            display_format='YYYY',
+            display_format='MM/YYYY',
             style={"textAlign": "center", "vertical-align": "top", "margin-right": "2150px", "height": "40%"}
         ),
 
@@ -101,8 +101,8 @@ layout = html.Div([
         'MIN': 'Minimalpreise',
         'DURCH': 'Durchschnittspreise'
         },
-        value=['MAX'],
-        style={"font-size": "25px", "margin-top": "30px", 'font-family': 'Constantia'}
+        value=['MAX',"MIN", "DURCH"],
+        style={"font-size": "25px", "margin-top": "30px", 'font-family': 'Constantia', "margin-top": "30px"}
             )
         ]),
         # html.P("Distanz:", style={'font-size': '20px', 'color': colors['text']}),
@@ -136,7 +136,8 @@ layout = html.Div([
 
         dcc.Tabs(id='tabs', value="Liniendiagramm", children=[
         dcc.Tab(label='Liniendiagramm', value='Liniendiagramm', children=[], style=tab_style, selected_style=tab_selected_style),
-        dcc.Tab(label='Scatter-Plot', value='Scatter-Plot', children=[], style=tab_style, selected_style=tab_selected_style)],
+        dcc.Tab(label='Scatter-Plot', value='Scatter-Plot', children=[], style=tab_style, selected_style=tab_selected_style),
+        dcc.Tab(label='Area Chart', value='Area Chart', children=[], style=tab_style, selected_style=tab_selected_style)],
         
         style = {'width': '50%',
                  'font-size': '80%',
@@ -155,7 +156,13 @@ layout = html.Div([
                 style={'width': '50%', "height": '80%', "margin-left": "auto",
                        "margin-right": "auto", "color": "#696969", "margin-top": "40px"}
                        #"margin-top": "-10px"
-            )
+            ),
+        dcc.Graph(
+                id="Boxplot",
+                style={'width': '50%', "height": '80%', "margin-left": "auto",
+                       "margin-right": "auto", "color": "#696969", "margin-top": "-50px"}
+            ),
+
         ], style={"vertical-align": "top", "margin-left": "-100","margin-top": "-600" }),
        dash_table.DataTable(
             id='table', 
@@ -177,16 +184,16 @@ layout = html.Div([
             style_data_conditional=[
                 {
             'if': {'column_id': c},
-            'minWidth': '20px',  # Hier können Sie die Breite anpassen
-            'maxWidth': '50px',  # Hier können Sie die Breite anpassen
-            'width': '30px',     # Hier können Sie die Breite anpassen
-             } for c in ['Year', 'Month', '$Value']  # Geben Sie die Spalten an, für die Sie die Breite ändern möchten
+            'minWidth': '20px',  
+            'maxWidth': '50px',  
+            'width': '30px',     
+             } for c in ['Year', 'Month', '$Value'] 
             ],
             style_table={
-                'maxHeight': '920px',  # Hier können Sie die maximale Höhe der Tabelle festlegen
+                'maxHeight': '1340px',  
                 'overflowY': 'scroll',
-                "margin-top": "-920px",
-                "margin-left": "2150px"     # Aktiviert die vertikale Scrollbar
+                "margin-top": "-1350px",
+                "margin-left": "2150px"  
             },
             fill_width=False
             )
@@ -264,7 +271,7 @@ def Strecke(flight_Abflug, flight_Ankunft, start_date, end_date):
     max_values = filtered_df.groupby("Year")["$Value"].max().reset_index()
 
     fig = px.bar(max_values, x="Year", y="$Value", template="plotly_dark",
-        labels={"Year": "Jahr", "$Value": "Wert"}, color_discrete_sequence=["#ff0000"])
+        labels={"Year": "Year", "$Real": "$Real"}, color_discrete_sequence=["#ff0000"])
     
     return fig
 
@@ -355,11 +362,49 @@ def ZweiteStrecke(flight_Abflug, flight_Ankunft, start_date, end_date, selected_
                     width=2,
                     color='DarkSlateGrey'
                     ))))
+            
+
+    if tabs == "Area Chart":
+        min_values = filtered_df.groupby("Year")["$Real"].min()
+        max_values = filtered_df.groupby("Year")["$Real"].max()
+        mean_values = filtered_df.groupby("Year")["$Real"].mean()
+
+        if 'MAX' in selected_Price:
+            fig.add_trace(go.Scatter(
+            x=max_values.index,
+            y=max_values.values,
+            mode='lines',
+            fill='tozeroy',
+            line=dict(color='green'),
+            name='Maximalwert'
+        ))
+
+        if 'MIN' in selected_Price:
+            fig.add_trace(go.Scatter(
+            x=min_values.index,
+            y=min_values.values,
+            fill='tonexty', # fill area between this trace and the previous one
+            mode='lines',
+            line=dict(color='blue'),
+            fillcolor='rgba(0, 0, 255, 0.3)', # blue with transparency
+            name='Minimalwert'
+        ))
+
+        if 'DURCH' in selected_Price:
+            fig.add_trace(go.Scatter(
+                x=mean_values.index,
+                y=mean_values.values,
+                fill='tonexty', # fill area between this trace and the previous one
+                mode='lines',
+                line=dict(color='orange'),
+                fillcolor='rgba(255, 165, 0, 0.3)', # orange with transparency
+                name='Durchschnittswert'
+            ))
 
     fig.update_layout(
     title="Maximum und Minimumpreise für die Strecke: {} & {}".format(flight_Abflug, flight_Ankunft),
     xaxis=dict(title="Year"),
-    yaxis=dict(title="$Value"),
+    yaxis=dict(title="$Real"),
     template="plotly_dark"
     )
 
@@ -381,7 +426,7 @@ def table(flight_Abflug, flight_Ankunft, start_date, end_date):
     df = pd.read_csv("AUS_Fares_March2024.csv", sep=',', dtype={"Year": int})
     
     # Auswahl der relevanten Spalten
-    df = df[["Year", "Month", "Port1", "Port2", "Route", "$Value"]]
+    df = df[["Year", "Month", "Port1", "Port2", "Route", "$Real"]]
     
     start_year = datetime.strptime(start_date, "%Y-%m-%d").year
     end_year = datetime.strptime(end_date, "%Y-%m-%d").year
@@ -396,3 +441,38 @@ def table(flight_Abflug, flight_Ankunft, start_date, end_date):
     filtered_df["Month"] = filtered_df["Month"].apply(lambda x: monatsnamen[x-1])
     
     return filtered_df.to_dict('records')
+
+
+
+@callback(
+    Output(component_id= "Boxplot", component_property="figure"),
+    Input(component_id= "flight_Abflug", component_property="data"),
+    Input(component_id= "flight_Ankunft", component_property="data"),
+    Input('year-picker',component_property= "start_date"),  
+    Input('year-picker',component_property= "end_date"),
+    Input('tabs', 'value')
+)
+
+def ZweiteStrecke(flight_Abflug, flight_Ankunft, start_date, end_date, tabs):
+    df = pd.read_csv("AUS_Fares_March2024.csv", sep=',', dtype={"Year": int})
+    df = df[["Year", "Month", "YearMonth", "Port1", "Port2", "Route", "$Value", "$Real"]]
+    df = df[(df["Port1"] == flight_Abflug) & (df["Port2"] == flight_Ankunft)]
+
+    # Extrahiere das Jahr aus den Datumsangaben und wandele sie in Integer um
+    start_year = datetime.strptime(start_date, "%Y-%m-%d").year
+    end_year = datetime.strptime(end_date, "%Y-%m-%d").year
+    
+    filtered_df = df.loc[(df["Year"] >= start_year) & (df["Year"] < end_year)]
+
+    # Erstelle das Boxplot
+    fig = px.box(filtered_df, x="Year", y="$Real")
+
+    fig.update_layout(
+        #title=f"Preisentwicklung für die Strecke: {flight_Abflug} & {flight_Ankunft}",
+        xaxis=dict(title="Year"),
+        yaxis=dict(title="$Real"),
+        template="plotly_dark"
+    )
+
+    return fig
+
