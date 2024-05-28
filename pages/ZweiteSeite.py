@@ -1,4 +1,5 @@
 import dash
+from dash import dash_table
 from dash import html, dcc, callback
 import dash_bootstrap_components as dbc
 from dash.dependencies import Input, Output
@@ -8,8 +9,9 @@ import plotly.graph_objects as go
 import numpy as np
 import random
 import os
-import dash_table
+from dash.dash_table.Format import Group
 
+app = dash.Dash(__name__) 
 dash.register_page(__name__, path='/zweite-seite', name="Fluganalyse2")
 
 def haversine(lon1, lat1, lon2, lat2):
@@ -129,6 +131,13 @@ def update_graph_and_map(selected_origin, selected_destination, selected_year):
         avg_prices = filtered_data.groupby('Month')['$Value'].mean().reset_index()
         bar_fig = px.bar(avg_prices, x='Month', y='$Value', title=f'Durchschnittspreise pro Monat von {selected_origin} nach {selected_destination} in {selected_year}')
         
+        bar_fig.update_layout(
+            plot_bgcolor='rgb(255, 255, 255)',  # Weißer Hintergrund
+            paper_bgcolor='rgb(245, 245, 245)',  # Leicht grauer Rahmen
+            title_font=dict(color='rgb(32, 32, 32)'),  # Dunkelgrauer Titel
+            colorway=['rgb(70, 130, 180)']  # Stahlblau für Balken
+        )
+
         heatmap_data = df_cleaned[(df_cleaned['Origin'] == selected_origin) & (df_cleaned['Destination'] == selected_destination)]
         heatmap_fig = px.density_heatmap(heatmap_data, x='Month', y='Year', z='$Value', marginal_x="histogram", marginal_y="histogram", title='Preisfluktuationen über Zeit')
         
@@ -171,10 +180,13 @@ def update_graph_and_map(selected_origin, selected_destination, selected_year):
             title=f"Flugroute von {selected_origin} nach {selected_destination}",
             geo=dict(
                 showland=True,
-                landcolor="lightgray",
+                landcolor="rgb(244, 164, 96)",  # Sandfarben
+                showocean=True,
+                oceancolor="rgb(135, 206, 235)",  # Himmelsblau
                 showcountries=True,
-                countrycolor="white",
+                countrycolor="rgb(32, 32, 32)",  # Weiß für Ländergrenzen
                 showcoastlines=True,
+                coastlinecolor="rgb(32, 32, 32)",  # Dunkelgrau für Küstenlinien
                 projection_type='orthographic'
             )
         )
@@ -186,16 +198,17 @@ def update_graph_and_map(selected_origin, selected_destination, selected_year):
                                 (df_cleaned['Year'] == selected_year)]
         summary = stats_data['$Value'].describe()
         summary_table = html.Div([
-            dash_table.DataTable(
-                data=summary.reset_index().to_dict('records'),
-                columns=[{"name": i, "id": i} for i in summary.reset_index().columns],
-                style_cell={'textAlign': 'left'},
-                style_header={
-                    'backgroundColor': 'rgb(230, 230, 230)',
-                    'fontWeight': 'bold'
-                }
-            )
-        ])
+    dash_table.DataTable(
+        data=summary.reset_index().to_dict('records'),
+        columns=[{"name": i, "id": i} for i in summary.reset_index().columns],
+        style_cell={'textAlign': 'left', 'color': 'rgb(0, 0, 0)'},  # Textfarbe auf Schwarz setzen
+        style_header={
+            'backgroundColor': 'rgb(230, 230, 250)',  # Lavendel für die Kopfzeile
+            'fontWeight': 'bold',
+            'color': 'rgb(0, 0, 0)'  # Textfarbe der Kopfzeile auf Schwarz setzen
+        }
+    )
+])
 
         return line_fig, bar_fig, heatmap_fig, flight_route_map, distance_text, summary_table
     except Exception as e:
