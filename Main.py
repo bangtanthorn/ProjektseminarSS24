@@ -4,6 +4,7 @@ import dash_bootstrap_components as dbc
 from dash import callback
 import pandas as pd
 from dash.dependencies import Input, Output, State
+from dash import dash_table
 
 # Erstelle eine Dash-App und aktiviere die Verwendung von Seiten (use_pages=True)
 app = dash.Dash(__name__, use_pages=True, suppress_callback_exceptions=True, external_stylesheets=[dbc.themes.DARKLY])
@@ -19,8 +20,9 @@ topbar = dbc.Nav(
     [
         dbc.NavItem(dbc.NavLink("Fluganalyse1", href="/", style={"font-size": "25px", 'font-family': 'Constantia'})),
         dbc.NavItem(dbc.NavLink("Fluganalyse2", href="/zweite-seite", style={"font-size": "25px", 'font-family': 'Constantia'})),
+        dbc.NavItem(dbc.NavLink("Prognose", href="/dritte-seite", style={"font-size": "25px", 'font-family': 'Constantia'})),
         dbc.Col(html.P(""), width=1),
-        dbc.Col(html.P("Abflug:"), style={"font-size": "25px", "margin-left": "800px", 'font-family': 'Constantia'}),
+        dbc.Col(html.P("Abflug:", style={"font-size": "25px", "margin-left": "800px", 'font-family': 'Constantia'})),
         dbc.Col(
             dcc.Dropdown(
                 options=[
@@ -59,14 +61,15 @@ topbar = dbc.Nav(
                 ],
                 value="Adelaide",
                 id="Port3",
-                style={'width': '70%',
-                       "margin-left": "-50px",
-                       "display": "block",
-                       "color": "black",
-                       'font-family': 'Constantia',
-                       "font-size": "20px"},
+                style={
+                    'width': '70%',
+                    "margin-left": "-50px",
+                    "display": "block",
+                    "color": "black",
+                    'font-family': 'Constantia',
+                    "font-size": "20px"
+                },
             ),
-        
         ),
         dbc.Col(html.P("Ankunft:", style={"font-size": "25px", 'font-family': 'Constantia'}), width=1),
         dbc.Col(
@@ -107,12 +110,14 @@ topbar = dbc.Nav(
                 ],
                 value="Brisbane",
                 id="Port4",
-                style={'width': '70%',
-                       "margin-left": "-15px",
-                       "display": "block",
-                       "color": "black",
-                       'font-family': 'Constantia',
-                       "font-size": "20px"},
+                style={
+                    'width': '70%',
+                    "margin-left": "-15px",
+                    "display": "block",
+                    "color": "black",
+                    'font-family': 'Constantia',
+                    "font-size": "20px"
+                },
             ),
         )
     ],
@@ -121,6 +126,7 @@ topbar = dbc.Nav(
     className="navbar navbar-expand-lg navbar-dark bg-secondary",
     style={"color": "#A9A9A9"}
 )
+
 
 app.layout = dbc.Container([
 
