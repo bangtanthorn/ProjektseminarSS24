@@ -21,6 +21,8 @@ topbar = dbc.Nav(
     [
         dbc.NavItem(dbc.NavLink("Fluganalyse1", href="/", style={"font-size": "25px", 'font-family': 'Constantia'})),
         dbc.NavItem(dbc.NavLink("Fluganalyse2", href="/zweite-seite", style={"font-size": "25px", 'font-family': 'Constantia'})),
+   dbc.NavItem(dbc.NavLink("Prognosen", href="/prognosen")),
+
         dbc.Col(html.P(""), width=1),
         dbc.Col(html.P("Abflug:"), style={"font-size": "25px", "margin-left": "800px", 'font-family': 'Constantia'}),
         dbc.Col(
@@ -124,38 +126,31 @@ topbar = dbc.Nav(
     style={"color": "#A9A9A9"}
 )
 
-app.layout = dbc.Container([
-
+app.layout = dbc.Container(
+    [
         html.Div(
-        html.H1("Flugpreisanalyse", style={'fontSize': 70, 'textAlign': 'center', 'color': colors['text'], 'font-family': 'Constantia', 'fontWeight': 'normal'})),
+            html.H1("Flugpreisanalyse", style={'fontSize': 70, 'textAlign': 'center', 'color': colors['text'], 'font-family': 'Constantia', 'fontWeight': 'normal'})),
         html.Hr(),
-        dbc.Row(        
-            dbc.Col(
-                [
-                    topbar  # Fügt oben definierte Bar ein
-                ])),
-        dash.page_container,  # Fügt definierte Seitennamen und Referenzen ein
+        dbc.Row([dbc.Col(topbar)]),
+        dash.page_container,
         html.Hr(),
-            dbc.Row(
-        dbc.Col(
-             [
-                dcc.Store(id="flight_Abflug"),
-                dcc.Store(id="flight_Ankunft")  # Speicher des geladenen Aktien Tickers (Informationen über die gewählte Aktie)
-             ]
-        ))
+        dbc.Row(dbc.Col([dcc.Store(id="flight_Abflug"), dcc.Store(id="flight_Ankunft")]))
     ], 
-    style={'background-color': "#121212",
-          'background-size': '100%',
-          'position': 'fixed',
-          'width': '100%',
-          'height': '100%',
-          'font-family': 'Rockwell',
-          "display": "block", 
-          "margin-left": "auto",
-          "margin-right": "auto",
-          'textAlign': 'center',
-          "overflow": "scroll"
-          }
+    
+    style={
+        'background-color': "#121212",
+        'background-size': '100%',
+        'position': 'fixed',
+        'width': '100%',
+        'height': '100%',
+        'font-family': 'Rockwell',
+        "display": "block", 
+        "margin-left": "auto",
+        "margin-right": "auto",
+        'textAlign': 'center',
+        "overflow": "scroll"
+    }
+   
 , fluid=True)
 
 @callback(
