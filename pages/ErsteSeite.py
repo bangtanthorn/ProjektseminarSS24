@@ -23,11 +23,21 @@ from dash import dash_table
 #unique_values = df['Port1'].unique()
 #print(unique_values)
 
+df = pd.read_csv("AUS_Fares_March2024.csv", sep=',')
+df = df[["Year", "Month", "YearMonth", "Port1", "Port2", "Route", "$Value", "$Real"]]
+df = df[(df["Port1"] == "Adelaide") & (df["Port2"] == "Brisbane")]
+df = df.reset_index(drop=True)
+print(df.tail(20))
+
+
+
 dash.register_page(__name__, path='/', name = "Fluganalyse1")
 
 
-df = pd.read_csv('AUS_Fares_March2024.csv')
-df_cleaned = df[["Year","Month","YearMonth","Port1","Port2","Route","$Value","$Real"]].copy()
+#df = pd.read_csv('AUS_Fares_March2024.csv')
+#df_cleaned = df[["Year","Month","YearMonth","Port1","Port2","Route","$Value","$Real"]].copy()
+
+
 
 
 
@@ -265,7 +275,7 @@ def Strecke(flight_Abflug, flight_Ankunft, start_date, end_date):
     start_year = datetime.strptime(start_date, "%Y-%m-%d").year
     end_year = datetime.strptime(end_date, "%Y-%m-%d").year
 
-    filtered_df = df.loc[(df["Year"] >= start_year) & (df["Year"] < end_year)]
+    filtered_df = df.loc[(df["Year"] >= start_year) & (df["Year"] <= end_year)]
 
     # Gruppiere nach Jahr und erhalte das Maximum für jedes Jahr
     max_values = filtered_df.groupby("Year")["$Value"].max().reset_index()
@@ -296,7 +306,7 @@ def ZweiteStrecke(flight_Abflug, flight_Ankunft, start_date, end_date, selected_
     start_year = datetime.strptime(start_date, "%Y-%m-%d").year
     end_year = datetime.strptime(end_date, "%Y-%m-%d").year
     
-    filtered_df = df.loc[(df["Year"] >= start_year) & (df["Year"] < end_year)]
+    filtered_df = df.loc[(df["Year"] >= start_year) & (df["Year"] <= end_year)]
 
     # Maximum und Minimum pro Jahr extrahiere
     #min_values = filtered_df.groupby("Year")["$Value"].min()
@@ -309,19 +319,19 @@ def ZweiteStrecke(flight_Abflug, flight_Ankunft, start_date, end_date, selected_
 
         if 'MAX' in selected_Price:
             # Plot für das Maximum erstellen
-            max_values = filtered_df.groupby("Year")["$Value"].max()
+            max_values = filtered_df.groupby("Year")["$Real"].max()
             max_line = go.Scatter(x=max_values.index, y=max_values.values, mode='lines', name='Maximalwert')
             fig.add_trace(max_line)
     
         if 'MIN' in selected_Price:
             # Plot für das Minimum erstellen
-            min_values = filtered_df.groupby("Year")["$Value"].min()
+            min_values = filtered_df.groupby("Year")["$Real"].min()
             min_line = go.Scatter(x=min_values.index, y=min_values.values, mode='lines', name='Minimalwert')
             fig.add_trace(min_line)
 
         if 'DURCH' in selected_Price:
             # Plot für das Minimum erstellen
-            mean_values = filtered_df.groupby("Year")["$Value"].mean()
+            mean_values = filtered_df.groupby("Year")["$Real"].mean()
             mean_line = go.Scatter(x=mean_values.index, y=mean_values.values, mode='lines', name='Durchschnittswert')
             fig.add_trace(mean_line)
             # Figur erstellen und Linien hinzufügen
@@ -329,7 +339,7 @@ def ZweiteStrecke(flight_Abflug, flight_Ankunft, start_date, end_date, selected_
     if tabs == "Scatter-Plot": 
 
         if 'MAX' in selected_Price:
-            max_values = filtered_df.groupby("Year")["$Value"].max()
+            max_values = filtered_df.groupby("Year")["$Real"].max()
             #fig = px.scatter(x=max_values.index, y=max_values.values)
             fig.add_trace(go.Scatter(x=max_values.index, y=max_values.values, mode='markers', name='Maximalwert', marker=dict(
                     size=10,
@@ -341,7 +351,7 @@ def ZweiteStrecke(flight_Abflug, flight_Ankunft, start_date, end_date, selected_
                     ))))
 
         if 'MIN' in selected_Price:
-            min_values = filtered_df.groupby("Year")["$Value"].min()
+            min_values = filtered_df.groupby("Year")["$Real"].min()
             #fig = px.scatter(x=max_values.index, y=max_values.values)
             fig.add_trace(go.Scatter(x=min_values.index, y=min_values.values, mode='markers', name='Minimalwert', marker=dict(
                     size=10,
@@ -353,7 +363,7 @@ def ZweiteStrecke(flight_Abflug, flight_Ankunft, start_date, end_date, selected_
 
 
         if 'DURCH' in selected_Price:
-            mean_values = filtered_df.groupby("Year")["$Value"].mean()
+            mean_values = filtered_df.groupby("Year")["$Real"].mean()
             #fig = px.scatter(x=max_values.index, y=max_values.values)
             fig.add_trace(go.Scatter(x=mean_values.index, y=mean_values.values, mode='markers', name='Durchschnittswerte', marker=dict(
                     size=10,
@@ -420,27 +430,26 @@ def ZweiteStrecke(flight_Abflug, flight_Ankunft, start_date, end_date, selected_
 
 
 def table(flight_Abflug, flight_Ankunft, start_date, end_date):
+
     monatsnamen = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"]
-    
     # Lese die CSV-Datei in ein DataFrame
     df = pd.read_csv("AUS_Fares_March2024.csv", sep=',', dtype={"Year": int})
     
     # Auswahl der relevanten Spalten
-    df = df[["Year", "Month", "Port1", "Port2", "Route", "$Real"]]
     
+    df = df[(df["Port1"] == flight_Abflug) & (df["Port2"] == flight_Ankunft)]
+    df = df[["Year", "Month","$Real"]]
     start_year = datetime.strptime(start_date, "%Y-%m-%d").year
     end_year = datetime.strptime(end_date, "%Y-%m-%d").year
-    # Konvertiere "start_date" und "end_date" in numerische Werte
-    start_date = int(start_year)
-    end_date = int(end_year)
     
     # Filtere nach Abflug- und Ankunftsort und Zeitraum
-    filtered_df = df.loc[(df["Year"] >= start_date) & (df["Year"] < end_date)]
+    filtered_df = df.loc[(df["Year"] >= start_year) & (df["Year"] <= end_year)]
     
     # Konvertiere numerische Monatswerte in Monatsnamen
     filtered_df["Month"] = filtered_df["Month"].apply(lambda x: monatsnamen[x-1])
     
     return filtered_df.to_dict('records')
+
 
 
 
@@ -450,10 +459,11 @@ def table(flight_Abflug, flight_Ankunft, start_date, end_date):
     Input(component_id= "flight_Ankunft", component_property="data"),
     Input('year-picker',component_property= "start_date"),  
     Input('year-picker',component_property= "end_date"),
-    Input('tabs', 'value')
+   
 )
 
-def ZweiteStrecke(flight_Abflug, flight_Ankunft, start_date, end_date, tabs):
+def ZweiteStrecke(flight_Abflug, flight_Ankunft, start_date, end_date):
+
     df = pd.read_csv("AUS_Fares_March2024.csv", sep=',', dtype={"Year": int})
     df = df[["Year", "Month", "YearMonth", "Port1", "Port2", "Route", "$Value", "$Real"]]
     df = df[(df["Port1"] == flight_Abflug) & (df["Port2"] == flight_Ankunft)]
@@ -462,7 +472,7 @@ def ZweiteStrecke(flight_Abflug, flight_Ankunft, start_date, end_date, tabs):
     start_year = datetime.strptime(start_date, "%Y-%m-%d").year
     end_year = datetime.strptime(end_date, "%Y-%m-%d").year
     
-    filtered_df = df.loc[(df["Year"] >= start_year) & (df["Year"] < end_year)]
+    filtered_df = df.loc[(df["Year"] >= start_year) & (df["Year"] <= end_year)]
 
     # Erstelle das Boxplot
     fig = px.box(filtered_df, x="Year", y="$Real")
@@ -475,4 +485,3 @@ def ZweiteStrecke(flight_Abflug, flight_Ankunft, start_date, end_date, tabs):
     )
 
     return fig
-

@@ -11,7 +11,7 @@ import random
 import os
 from dash.dash_table.Format import Group
 
-app = dash.Dash(__name__) 
+#app = dash.Dash(__name__) 
 dash.register_page(__name__, path='/zweite-seite', name="Fluganalyse2")
 
 def haversine(lon1, lat1, lon2, lat2):
