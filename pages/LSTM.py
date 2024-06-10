@@ -130,7 +130,8 @@ def get_lstm_predictions(flight_Abflug, flight_Ankunft):
     predictions = scaler.inverse_transform(predictions)
 
 
-
+    # Initialisierung von Xtest und Ytest
+    Xtest, Ytest = [], []
     # Schleife, die von training_data_length bis zum Ende der skalierten Daten läuft
     # Dies stellt sicher, dass die Testdaten aus den letzten 20% der Daten bestehen
     for i in range(training_data_length, len(scaled_data)):
@@ -186,8 +187,10 @@ def get_lstm_predictions(flight_Abflug, flight_Ankunft):
     # Das Layout der Grafik anpassen
     fig.update_layout(template="plotly_dark", height=600)
     # Die Achsenbeschriftungen für das Datum und den Kurs festlegen
-    fig.update_xaxes(title="Datum")  
-    fig.update_yaxes(title="Kurs")  
+    fig.update_xaxes(title="Year")  
+    fig.update_yaxes(title="$Real")  
+
+    fig.update_layout(title="LSTM-Prognose für die Strecke: {} & {}".format(flight_Abflug, flight_Ankunft))
 
 
     return fig

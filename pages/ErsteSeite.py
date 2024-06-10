@@ -24,7 +24,7 @@ from dash import dash_table
 #print(unique_values)
 
 df = pd.read_csv("AUS_Fares_March2024.csv", sep=',')
-df = df[["Year", "Month", "YearMonth", "Port1", "Port2", "Route", "$Value", "$Real"]]
+df = df[["Year", "Month", "YearMonth", "Port1", "Port2", "Route", "$Real"]]
 df = df[(df["Port1"] == "Adelaide") & (df["Port2"] == "Brisbane")]
 df = df.reset_index(drop=True)
 print(df.tail(20))
@@ -197,7 +197,7 @@ layout = html.Div([
             'minWidth': '20px',  
             'maxWidth': '50px',  
             'width': '30px',     
-             } for c in ['Year', 'Month', '$Value'] 
+             } for c in ['Year', 'Month', '$Real'] 
             ],
             style_table={
                 'maxHeight': '1340px',  
@@ -267,7 +267,7 @@ style={'background-color': "#121212",
 
 def Strecke(flight_Abflug, flight_Ankunft, start_date, end_date):
     df = pd.read_csv("AUS_Fares_March2024.csv", sep=',')
-    df = df[["Year", "Month", "YearMonth", "Port1", "Port2", "Route", "$Value", "$Real"]]
+    df = df[["Year", "Month", "YearMonth", "Port1", "Port2", "Route", "$Real"]]
     df = df[(df["Port1"] == flight_Abflug) & (df["Port2"] == flight_Ankunft)]
     df = df.reset_index(drop=True)
 
@@ -278,9 +278,9 @@ def Strecke(flight_Abflug, flight_Ankunft, start_date, end_date):
     filtered_df = df.loc[(df["Year"] >= start_year) & (df["Year"] <= end_year)]
 
     # Gruppiere nach Jahr und erhalte das Maximum für jedes Jahr
-    max_values = filtered_df.groupby("Year")["$Value"].max().reset_index()
+    max_values = filtered_df.groupby("Year")["$Real"].max().reset_index()
 
-    fig = px.bar(max_values, x="Year", y="$Value", template="plotly_dark",
+    fig = px.bar(max_values, x="Year", y="$Real", template="plotly_dark",
         labels={"Year": "Year", "$Real": "$Real"}, color_discrete_sequence=["#ff0000"])
     
     return fig
@@ -299,7 +299,7 @@ def Strecke(flight_Abflug, flight_Ankunft, start_date, end_date):
 def ZweiteStrecke(flight_Abflug, flight_Ankunft, start_date, end_date, selected_Price, tabs):
 
     df = pd.read_csv("AUS_Fares_March2024.csv", sep=',', dtype={"Year": int})
-    df = df[["Year", "Month", "YearMonth", "Port1", "Port2", "Route", "$Value", "$Real"]]
+    df = df[["Year", "Month", "YearMonth", "Port1", "Port2", "Route", "$Real"]]
     df = df[(df["Port1"] == flight_Abflug) & (df["Port2"] == flight_Ankunft)]
 
     # Extrahiere das Jahr aus den Datumsangaben und wandele sie in Integer um
@@ -465,7 +465,7 @@ def table(flight_Abflug, flight_Ankunft, start_date, end_date):
 def ZweiteStrecke(flight_Abflug, flight_Ankunft, start_date, end_date):
 
     df = pd.read_csv("AUS_Fares_March2024.csv", sep=',', dtype={"Year": int})
-    df = df[["Year", "Month", "YearMonth", "Port1", "Port2", "Route", "$Value", "$Real"]]
+    df = df[["Year", "Month", "YearMonth", "Port1", "Port2", "Route","$Real"]]
     df = df[(df["Port1"] == flight_Abflug) & (df["Port2"] == flight_Ankunft)]
 
     # Extrahiere das Jahr aus den Datumsangaben und wandele sie in Integer um
