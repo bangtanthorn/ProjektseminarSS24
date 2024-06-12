@@ -1,13 +1,12 @@
 import pandas as pd
 from statsmodels.tsa.statespace.sarimax import SARIMAX
-from dash import dcc, html, callback, Output, Input, State
+from dash import dcc, html, callback, Output, Input
 import plotly.graph_objs as go
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 import numpy as np
 import itertools
 from pages.LSTM import get_lstm_predictions  # Import der LSTM-Funktion
-from dash import dcc, html, callback, Output, Input
-import dash 
+import dash
 
 dash.register_page(__name__, path='/prognosen', name="Prognosen")
 
@@ -22,13 +21,16 @@ df = df.drop_duplicates(subset=['YearMonth', 'Route'])
 
 # SARIMA-Modellparameter-Optimierung
 def optimize_sarima(endog, seasonal_periods):
-    p = d = q = range(0, 2)
-    seasonal_pdq = [(x[0], x[1], x[2], seasonal_periods) for x in list(itertools.product(p, d, q))]
+    p = range(0, 3)
+    d = range(0, 2)
+    q = range(0, 3)
+    pdq = list(itertools.product(p, d, q))
+    seasonal_pdq = [(x[0], x[1], x[2], seasonal_periods) for x in pdq]
 
     best_aic = float("inf")
     best_params = None
 
-    for param in list(itertools.product(p, d, q)):
+    for param in pdq:
         for param_seasonal in seasonal_pdq:
             try:
                 mod = SARIMAX(endog, order=param, seasonal_order=param_seasonal, enforce_stationarity=False, enforce_invertibility=False)
@@ -36,9 +38,49 @@ def optimize_sarima(endog, seasonal_periods):
                 if results.aic < best_aic:
                     best_aic = results.aic
                     best_params = (param, param_seasonal)
-            except:
+            except Exception as e:
+                print(f"Parameter combination {param} and {param_seasonal} failed with error: {e}")
                 continue
     return best_params
+
+def prepare_data(df, flight_Abflug, flight_Ankunft):
+    route_df = df[(df['Port1'] == flight_Abflug) & (df['Port2'] == flight_Ankunft)].copy()
+    if route_df.empty:
+        raise ValueError(f"No data found for the route from {flight_Abflug} to {flight_Ankunft}")
+    
+    route_df.set_index('YearMonth', inplace=True)
+    route_df = route_df[~route_df.index.duplicated(keep='first')]
+    
+    if 'Real' not in route_df.columns:
+        raise ValueError(f"The 'Real' column is missing in the data for the route from {flight_Abflug} to {flight_Ankunft}")
+
+    route_df = route_df.asfreq('MS').interpolate()
+    
+    return route_df
+
+def create_figure(route_df, forecast_df, metrics_text):
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x=route_df.index, y=route_df['Real'], mode='lines', name='Tatsächliche Preise', line=dict(color='blue')))
+    fig.add_trace(go.Scatter(x=forecast_df.index, y=forecast_df['Forecast'], mode='lines+markers', name='Prognose', line=dict(color='orange', dash='dash')))
+    fig.add_trace(go.Scatter(x=forecast_df.index, y=forecast_df['Lower CI'], mode='lines', line=dict(color='grey'), showlegend=False))
+    fig.add_trace(go.Scatter(x=forecast_df.index, y=forecast_df['Upper CI'], mode='lines', line=dict(color='grey'), fill='tonexty', showlegend=False))
+
+    fig.update_layout(
+        title='SARIMA Prognose',
+        xaxis_title='Datum',
+        yaxis_title='Preis ($)',
+        template='plotly_dark',
+        annotations=[{
+            'text': metrics_text,
+            'x': 0.5,
+            'y': -0.2,
+            'xref': 'paper',
+            'yref': 'paper',
+            'showarrow': False,
+            'font': {'color': 'white'}
+        }]
+    )
+    return fig
 
 layout = html.Div([
     dcc.Graph(id='price-forecast-graph', style={'width': '70%', 'height': '60%', 'margin-left': 'auto', 'margin-right': 'auto', 'display': 'block'}),
@@ -55,22 +97,10 @@ layout = html.Div([
 )
 def update_graph(flight_Abflug, flight_Ankunft):
     try:
-        # Daten für die ausgewählten Abflug und Ankunft filtern
-        route_df = df[(df['Port1'] == flight_Abflug) & (df['Port2'] == flight_Ankunft)].copy()
-        route_df.set_index('YearMonth', inplace=True)
-        route_df = route_df[~route_df.index.duplicated(keep='first')]
-
-        # Sicherstellen, dass die Frequenz monatlich ist und fehlende Werte interpolieren
-        route_df = route_df.asfreq('MS').interpolate()
-
-        # Optimierte SARIMA-Parameter ermitteln
+        route_df = prepare_data(df, flight_Abflug, flight_Ankunft)
         best_params = optimize_sarima(route_df['Real'], 12)
-
-        # SARIMA-Modell anpassen
         model = SARIMAX(route_df['Real'], order=best_params[0], seasonal_order=best_params[1])
         results = model.fit()
-
-        # Vorhersagen für die nächsten 12 Monate
         forecast = results.get_forecast(steps=12)
         forecast_df = pd.DataFrame({
             'Forecast': forecast.predicted_mean,
@@ -78,35 +108,12 @@ def update_graph(flight_Abflug, flight_Ankunft):
             'Upper CI': forecast.conf_int().iloc[:, 1]
         }, index=pd.date_range(start=route_df.index[-1], periods=13, freq='MS')[1:])
 
-        # Daten für das Diagramm vorbereiten
-        fig = go.Figure()
-        fig.add_trace(go.Scatter(x=route_df.index, y=route_df['Real'], mode='lines', name='Tatsächliche Preise', line=dict(color='blue')))
-        fig.add_trace(go.Scatter(x=forecast_df.index, y=forecast_df['Forecast'], mode='lines+markers', name='Prognose', line=dict(color='orange', dash='dash')))
-        fig.add_trace(go.Scatter(x=forecast_df.index, y=forecast_df['Lower CI'], mode='lines', line=dict(color='grey'), showlegend=False))
-        fig.add_trace(go.Scatter(x=forecast_df.index, y=forecast_df['Upper CI'], mode='lines', line=dict(color='grey'), fill='tonexty', showlegend=False))
-
-        # Fehlermetriken berechnen
         mse = mean_squared_error(route_df['Real'], results.fittedvalues)
         mae = mean_absolute_error(route_df['Real'], results.fittedvalues)
         rmse = np.sqrt(mse)
         metrics_text = f'MSE: {mse:.2f}, MAE: {mae:.2f}, RMSE: {rmse:.2f}'
 
-        # Layout anpassen
-        fig.update_layout(
-            title=f'SARIMA Prognose für {flight_Abflug} nach {flight_Ankunft}',
-            xaxis_title='Datum',
-            yaxis_title='Preis ($)',
-            template='plotly_dark',
-            annotations=[{
-                'text': metrics_text,
-                'x': 0.5,
-                'y': -0.2,
-                'xref': 'paper',
-                'yref': 'paper',
-                'showarrow': False,
-                'font': {'color': 'white'}
-            }]
-        )
+        fig = create_figure(route_df, forecast_df, metrics_text)
         return fig, ""
     except Exception as e:
         error_message = f"Fehler bei der Prognose für die Strecke {flight_Abflug} nach {flight_Ankunft}: {str(e)}"
@@ -128,3 +135,6 @@ def update_graph(flight_Abflug, flight_Ankunft):
 def update_lstm_graph(flight_Abflug, flight_Ankunft):
     fig = get_lstm_predictions(flight_Abflug, flight_Ankunft)
     return fig
+
+
+
