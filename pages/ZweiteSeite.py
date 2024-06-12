@@ -54,18 +54,6 @@ layout = html.Div([
         html.H2("Flugpreisanalyse und Flugrouten-Dashboard", className="text-center mb-3"),
         html.Div([
             html.Div([
-                html.Label('Wähle einen Abflugort:'),
-                dcc.Dropdown(
-                    id='origin-dropdown',
-                    options=[{'label': airport, 'value': airport} for airport in sorted(common_airports)],
-                    value=sorted(common_airports)[0]
-                ),
-            ], className='mb-3'),
-            html.Div([
-                html.Label('Wähle ein Ziel:'),
-                dcc.Dropdown(id='destination-dropdown'),
-            ], className='mb-3'),
-            html.Div([
                 html.Label('Wähle ein Jahr:'),
                 dcc.Slider(
                     id='year-slider',
@@ -89,7 +77,7 @@ layout = html.Div([
 
 @callback(
     Output('destination-dropdown', 'options'),
-    Input('origin-dropdown', 'value')
+    Input('Port3', 'value')
 )
 def set_destination_options(selected_origin):
     destinations = df_cleaned[df_cleaned['Origin'] == selected_origin]['Destination'].unique()
@@ -111,8 +99,8 @@ def set_default_destination(options):
      Output('flight-route-map', 'figure'),
      Output('distance-text', 'children'),
      Output('stats-summary', 'children')],
-    [Input('origin-dropdown', 'value'),
-     Input('destination-dropdown', 'value'),
+    [Input('Port3', 'value'),
+     Input('Port4', 'value'),
      Input('year-slider', 'value')]
 )
 def update_graph_and_map(selected_origin, selected_destination, selected_year):
@@ -198,18 +186,19 @@ def update_graph_and_map(selected_origin, selected_destination, selected_year):
                                 (df_cleaned['Year'] == selected_year)]
         summary = stats_data['$Value'].describe()
         summary_table = html.Div([
-    dash_table.DataTable(
-        data=summary.reset_index().to_dict('records'),
-        columns=[{"name": i, "id": i} for i in summary.reset_index().columns],
-        style_cell={'textAlign': 'left', 'color': 'rgb(0, 0, 0)'},  # Textfarbe auf Schwarz setzen
-        style_header={
-            'backgroundColor': 'rgb(230, 230, 250)',  # Lavendel für die Kopfzeile
-            'fontWeight': 'bold',
-            'color': 'rgb(0, 0, 0)'  # Textfarbe der Kopfzeile auf Schwarz setzen
-        }
-    )
-])
+            dash_table.DataTable(
+                data=summary.reset_index().to_dict('records'),
+                columns=[{"name": i, "id": i} for i in summary.reset_index().columns],
+                style_cell={'textAlign': 'left', 'color': 'rgb(0, 0, 0)'},  # Textfarbe auf Schwarz setzen
+                style_header={
+                    'backgroundColor': 'rgb(230, 230, 250)',  # Lavendel für die Kopfzeile
+                    'fontWeight': 'bold',
+                    'color': 'rgb(0, 0, 0)'  # Textfarbe der Kopfzeile auf Schwarz setzen
+                }
+            )
+        ])
 
         return line_fig, bar_fig, heatmap_fig, flight_route_map, distance_text, summary_table
     except Exception as e:
         return go.Figure(), go.Figure(), go.Figure(), go.Figure(), f"Fehler: {str(e)}", "Statistische Daten nicht verfügbar"
+
