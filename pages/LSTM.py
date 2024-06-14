@@ -21,13 +21,12 @@ app = Dash(__name__)
 # Diese Funktion fügt zyklische Merkmale zu einem DataFrame hinzu.
     # Sie transformiert den Monat in zwei neue Features: sin und cos,
     # um die zyklische Natur der Monate zu repräsentieren.
-
+    # Diese Transformationen erlauben es, den periodischen Charakter der Daten beizubehalten.
     # Berechnet den Sinus des Monats, um die zyklische Natur der Daten zu erfassen.
     # Die Formel (2 * π * Monat / 12) normalisiert den Monatswert auf den Bereich [0, 2π],
     # da ein kompletter Zyklus (ein Jahr) 12 Monate hat.
 def add_cyclic_features(df):
     df['Month_sin'] = np.sin(2 * np.pi * df['Month'] / 12)
-
     # Berechnet den Kosinus des Monats, um die zyklische Natur der Daten zu erfassen.
     # Dies ergänzt das Sinus-Feature und hilft, die Periodizität der Monate zu modellieren.
     df['Month_cos'] = np.cos(2 * np.pi * df['Month'] / 12)
@@ -97,9 +96,12 @@ def get_lstm_predictions(flight_Abflug, flight_Ankunft):
     model.add(LSTM(neurons, return_sequences=True))
     model.add(Dropout(0.2))  # Dropout zur Regularisierung
     model.add(LSTM(neurons, return_sequences=False))
+    #Dense: verbundene Schicht
     model.add(Dense(25, activation='relu'))  # ReLU in der versteckten Schicht
     model.add(Dense(1, activation='linear'))  # Linear in der Ausgabeschicht
+    #Optimizer: optimale Kombination von Modellparametern zu finden, die die Vorhersagegenauigkeit maximiert.
     model.compile(optimizer="adam", loss="mse")
+    #Epochs: Durchlauf durch den Trainingssatz; Batch_Size:Anzahl der Trainingsbeispiele, die das Modell gleichzeitig durchläuft, bevor die Gewichte aktualisiert werden.
     model.fit(Xtrain, Ytrain, epochs=200, batch_size=35)
 
     # Vorhersagen erstellen

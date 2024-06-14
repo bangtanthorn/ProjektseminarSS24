@@ -14,6 +14,16 @@ from dash.dash_table.Format import Group
 #app = dash.Dash(__name__) 
 dash.register_page(__name__, path='/zweite-seite', name="Fluganalyse2")
 
+import dash
+from dash import dcc, html, dash_table
+from dash.dependencies import Input, Output
+import pandas as pd
+import numpy as np
+import os
+import random
+import plotly.express as px
+import plotly.graph_objects as go
+
 def haversine(lon1, lat1, lon2, lat2):
     lon1, lat1, lon2, lat2 = map(np.radians, [lon1, lat1, lon2, lat2])
     dlon = lon2 - lon1
@@ -48,28 +58,39 @@ colors = ['red', 'blue', 'green', 'orange', 'purple', 'yellow']
 # Zufällige Auswahl von Farben für jeden Flughafen
 airport_colors = [random.choice(colors) for _ in range(len(df_airports))]
 
+#app = dash.Dash(__name__)
+
 layout = html.Div([
-    html.H1("Fluganalyse-Dashboard", className="text-center mb-4"),
     html.Div([
-        html.H2("Flugpreisanalyse und Flugrouten-Dashboard", className="text-center mb-3"),
+        html.P(""),
+        html.P(""),
         html.Div([
             html.Div([
+                 html.P(""),     
+                 html.P(""), 
                 html.Label('Wähle ein Jahr:'),
-                dcc.Slider(
-                    id='year-slider',
-                    min=df_cleaned['Year'].min(),
-                    max=df_cleaned['Year'].max(),
-                    value=df_cleaned['Year'].min(),
-                    marks={str(year): str(year) for year in df_cleaned['Year'].unique()},
-                    step=None,
-                    included=False,
-                )
+                html.Div(
+                    dcc.Slider(
+                        id='year-slider',
+                        min=df_cleaned['Year'].min(),
+                        max=df_cleaned['Year'].max(),
+                        value=df_cleaned['Year'].min(),
+                        marks={str(year): str(year) for year in df_cleaned['Year'].unique()},
+                        step=None,
+                        included=False,
+                    ),
+                    style={'width': '50%', 'margin': '0 auto'}  # Breite des Sliders angepasst
+                ),
             ], className='mb-3')
         ], className='row'),
-        dcc.Graph(id='price-time-series', style={'height': '60vh', 'width': '100%'}),
-        dcc.Graph(id='average-price-bar', style={'height': '60vh', 'width': '100%'}),
-        dcc.Graph(id='price-heatmap', style={'height': '60vh', 'width': '100%'}),
-        dcc.Graph(id='flight-route-map', style={'height': '100vh', 'width': '100%'}),
+        dcc.Graph(id='price-time-series', style={'width': '70%', "height": '80%', "margin-left": "auto",
+                       "margin-right": "auto", "color": "#696969", "margin-top": "40px"}),
+        dcc.Graph(id='average-price-bar', style={'width': '70%', "height": '80%', "margin-left": "auto",
+                       "margin-right": "auto", "color": "#696969", "margin-top": "40px"}),
+        dcc.Graph(id='price-heatmap', style={'width': '70%', "height": '90%', "margin-left": "auto",
+                       "margin-right": "auto", "color": "#696969", "margin-top": "40px"}),
+        dcc.Graph(id='flight-route-map', style={'width': '70%', "height": '100%', "margin-left": "auto",
+                       "margin-right": "auto", "color": "#696969", "margin-top": "40px"}),
         html.Div(id='distance-text', style={'textAlign': 'center', 'fontSize': 20, 'margin': '10px'}),
         html.Div(id='stats-summary', className='mb-3'),
     ], className='container-fluid')
@@ -116,18 +137,15 @@ def update_graph_and_map(selected_origin, selected_destination, selected_year):
             raise ValueError("Die gefilterten Daten sind leer. Überprüfen Sie die Datenquelle oder die Filterkriterien.")
         
         line_fig = px.line(filtered_data, x='Month', y='$Value', title=f'Monatliche Preise von {selected_origin} nach {selected_destination} in {selected_year}')
+        line_fig.update_layout(template='plotly_dark')  # Hinzufügen des plotly_dark-Templates
+
         avg_prices = filtered_data.groupby('Month')['$Value'].mean().reset_index()
         bar_fig = px.bar(avg_prices, x='Month', y='$Value', title=f'Durchschnittspreise pro Monat von {selected_origin} nach {selected_destination} in {selected_year}')
+        bar_fig.update_layout(template='plotly_dark')  # Hinzufügen des plotly_dark-Templates
         
-        bar_fig.update_layout(
-            plot_bgcolor='rgb(255, 255, 255)',  # Weißer Hintergrund
-            paper_bgcolor='rgb(245, 245, 245)',  # Leicht grauer Rahmen
-            title_font=dict(color='rgb(32, 32, 32)'),  # Dunkelgrauer Titel
-            colorway=['rgb(70, 130, 180)']  # Stahlblau für Balken
-        )
-
         heatmap_data = df_cleaned[(df_cleaned['Origin'] == selected_origin) & (df_cleaned['Destination'] == selected_destination)]
         heatmap_fig = px.density_heatmap(heatmap_data, x='Month', y='Year', z='$Value', marginal_x="histogram", marginal_y="histogram", title='Preisfluktuationen über Zeit')
+        heatmap_fig.update_layout(template='plotly_dark')  # Hinzufügen des plotly_dark-Templates
         
         origin_coords = df_airports[df_airports['Airport'] == selected_origin].iloc[0]
         destination_coords = df_airports[df_airports['Airport'] == selected_destination].iloc[0]
@@ -166,6 +184,7 @@ def update_graph_and_map(selected_origin, selected_destination, selected_year):
         flight_route_map = go.Figure(data=[flight_path, airport_symbols, selected_airports])
         flight_route_map.update_layout(
             title=f"Flugroute von {selected_origin} nach {selected_destination}",
+            template='plotly_dark',  # Hinzufügen des plotly_dark-Templates
             geo=dict(
                 showland=True,
                 landcolor="rgb(244, 164, 96)",  # Sandfarben
@@ -189,16 +208,18 @@ def update_graph_and_map(selected_origin, selected_destination, selected_year):
             dash_table.DataTable(
                 data=summary.reset_index().to_dict('records'),
                 columns=[{"name": i, "id": i} for i in summary.reset_index().columns],
-                style_cell={'textAlign': 'left', 'color': 'rgb(0, 0, 0)'},  # Textfarbe auf Schwarz setzen
+                style_cell={'textAlign': 'left', 'color': 'white', 'backgroundColor': 'black'},  # Textfarbe auf Weiß und Hintergrundfarbe auf Schwarz setzen
                 style_header={
-                    'backgroundColor': 'rgb(230, 230, 250)',  # Lavendel für die Kopfzeile
+                    'backgroundColor': 'black',  # Schwarzer Hintergrund für die Kopfzeile
                     'fontWeight': 'bold',
-                    'color': 'rgb(0, 0, 0)'  # Textfarbe der Kopfzeile auf Schwarz setzen
+                    'color': 'white'  # Textfarbe der Kopfzeile auf Weiß setzen
                 }
             )
-        ])
+        ], style={'width': '70%', 'margin': '0 auto'})  # Breite der Tabelle angepasst
 
         return line_fig, bar_fig, heatmap_fig, flight_route_map, distance_text, summary_table
     except Exception as e:
         return go.Figure(), go.Figure(), go.Figure(), go.Figure(), f"Fehler: {str(e)}", "Statistische Daten nicht verfügbar"
 
+#if __name__ == '__main__':
+    #app.run_server(debug=True)

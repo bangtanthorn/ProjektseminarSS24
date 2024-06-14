@@ -135,9 +135,6 @@ layout = html.Div([
         html.Div([
         html.Div([
 
-
-        
-
         dcc.Graph(
                 id="time-series-chart",
                 style={'width': '50%', "height": '80%', "margin-left": "auto",
