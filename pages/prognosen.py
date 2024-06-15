@@ -58,28 +58,42 @@ def prepare_data(df, flight_Abflug, flight_Ankunft):
     
     return route_df
 
-def create_figure(route_df, forecast_df, metrics_text):
+def create_figure(route_df, forecast_df, metrics):
     fig = go.Figure()
     fig.add_trace(go.Scatter(x=route_df.index, y=route_df['Real'], mode='lines', name='Tatsächliche Preise', line=dict(color='blue')))
     fig.add_trace(go.Scatter(x=forecast_df.index, y=forecast_df['Forecast'], mode='lines+markers', name='Prognose', line=dict(color='orange', dash='dash')))
     fig.add_trace(go.Scatter(x=forecast_df.index, y=forecast_df['Lower CI'], mode='lines', line=dict(color='grey'), showlegend=False))
     fig.add_trace(go.Scatter(x=forecast_df.index, y=forecast_df['Upper CI'], mode='lines', line=dict(color='grey'), fill='tonexty', showlegend=False))
 
+    metrics_table = f"<b>Metricen</b><br><br>MSE: {metrics['mse']:.2f}<br>MAE: {metrics['mae']:.2f}<br>RMSE: {metrics['rmse']:.2f}"
+    
+    fig.add_trace(go.Scatter(
+        x=[None],
+        y=[None],
+        mode='markers',
+        marker=dict(size=10, color='rgba(0,0,0,0)'),
+        showlegend=True,
+        name=metrics_table,
+        hoverinfo='none'
+    ))
+
     fig.update_layout(
         title='SARIMA Prognose',
         xaxis_title='Datum',
         yaxis_title='Preis ($)',
         template='plotly_dark',
-        annotations=[{
-            'text': metrics_text,
-            'x': 0.5,
-            'y': -0.2,
-            'xref': 'paper',
-            'yref': 'paper',
-            'showarrow': False,
-            'font': {'color': 'white'}
-        }]
+        legend=dict(
+            x=1,
+            y=1,
+            traceorder='normal',
+            font=dict(
+                size=12,
+                color="white"
+            ),
+        ),
+        margin=dict(r=200)  # Platz für den Text rechts schaffen
     )
+
     return fig
 
 layout = html.Div([
@@ -88,7 +102,7 @@ layout = html.Div([
     dcc.Graph(id="Method-Graph", style={'width': '70%', 'height': '60%', 'margin-left': 'auto', 'margin-right': 'auto', 'display': 'block', 'margin-top': '100'})
 ], style={'background-color': "#121212", 'width': '100%', 'height': '95%', 'font-family': 'Constantia', "margin-top": "200px"})
 
-# Callback für SARIMA-Prognosen
+# Callbacks
 @callback(
     [Output('price-forecast-graph', 'figure'),
      Output('error-message', 'children')],
@@ -111,9 +125,9 @@ def update_graph(flight_Abflug, flight_Ankunft):
         mse = mean_squared_error(route_df['Real'], results.fittedvalues)
         mae = mean_absolute_error(route_df['Real'], results.fittedvalues)
         rmse = np.sqrt(mse)
-        metrics_text = f'MSE: {mse:.2f}, MAE: {mae:.2f}, RMSE: {rmse:.2f}'
+        metrics = {'mse': mse, 'mae': mae, 'rmse': rmse}
 
-        fig = create_figure(route_df, forecast_df, metrics_text)
+        fig = create_figure(route_df, forecast_df, metrics)
         return fig, ""
     except Exception as e:
         error_message = f"Fehler bei der Prognose für die Strecke {flight_Abflug} nach {flight_Ankunft}: {str(e)}"
@@ -135,6 +149,3 @@ def update_graph(flight_Abflug, flight_Ankunft):
 def update_lstm_graph(flight_Abflug, flight_Ankunft):
     fig = get_lstm_predictions(flight_Abflug, flight_Ankunft)
     return fig
-
-
-
