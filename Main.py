@@ -19,8 +19,8 @@ colors = {
 
 topbar = dbc.Nav(
     [
-    dbc.NavItem(dbc.NavLink("Fluganalyse1", href="/", style={"font-size": "25px", 'font-family': 'Constantia'})),
-    dbc.NavItem(dbc.NavLink("Fluganalyse2", href="/zweite-seite", style={"font-size": "25px", 'font-family': 'Constantia'})),
+    dbc.NavItem(dbc.NavLink("Visuelle Analyse Seite 1", href="/", style={"font-size": "25px", 'font-family': 'Constantia'})),
+    dbc.NavItem(dbc.NavLink("Visuelle Analyse Seite 2", href="/zweite-seite", style={"font-size": "25px", 'font-family': 'Constantia'})),
     dbc.NavItem(dbc.NavLink("Prognosen", href="/prognosen", style={"font-size": "25px", 'font-family': 'Constantia'})),
 
         dbc.Col(html.P(""), width=1),
@@ -63,8 +63,8 @@ topbar = dbc.Nav(
                 ],
                 value="Adelaide",
                 id="Port3",
-                style={'width': '70%',
-                       "margin-left": "-50px",
+                style={'width': '90%',
+                       "margin-left": "-20px",
                        "display": "block",
                        "color": "black",
                        'font-family': 'Constantia',
@@ -111,7 +111,7 @@ topbar = dbc.Nav(
                 ],
                 value="Brisbane",
                 id="Port4",
-                style={'width': '70%',
+                style={'width': '90%',
                        "margin-left": "-15px",
                        "display": "block",
                        "color": "black",

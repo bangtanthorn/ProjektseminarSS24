@@ -278,7 +278,7 @@ def Strecke(flight_Abflug, flight_Ankunft, start_date, end_date):
     max_values = filtered_df.groupby("Year")["$Real"].max().reset_index()
 
     fig = px.bar(max_values, x="Year", y="$Real", template="plotly_dark",
-        labels={"Year": "Year", "$Real": "$Real"}, color_discrete_sequence=["#ff0000"])
+        labels={"Year": "Jahr", "$Real": "Preis"}, color_discrete_sequence=["#ff0000"])
     
     return fig
 
@@ -410,8 +410,8 @@ def ZweiteStrecke(flight_Abflug, flight_Ankunft, start_date, end_date, selected_
 
     fig.update_layout(
     title="Maximum und Minimumpreise für die Strecke: {} & {}".format(flight_Abflug, flight_Ankunft),
-    xaxis=dict(title="Year"),
-    yaxis=dict(title="$Real"),
+    xaxis=dict(title="Jahr"),
+    yaxis=dict(title="Preis"),
     template="plotly_dark"
     )
 
@@ -476,8 +476,8 @@ def ZweiteStrecke(flight_Abflug, flight_Ankunft, start_date, end_date):
 
     fig.update_layout(
         #title=f"Preisentwicklung für die Strecke: {flight_Abflug} & {flight_Ankunft}",
-        xaxis=dict(title="Year"),
-        yaxis=dict(title="$Real"),
+        xaxis=dict(title="Jahr"),
+        yaxis=dict(title="Preis"),
         template="plotly_dark"
     )
 

@@ -5,7 +5,8 @@ import plotly.graph_objs as go
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 import numpy as np
 import itertools
-from pages.LSTM import get_lstm_predictions  # Import der LSTM-Funktion
+from pages.LSTM import get_lstm_predictions
+from pages.LineareRegression import LineareRegression  # Import der LSTM-Funktion
 import dash
 
 dash.register_page(__name__, path='/prognosen', name="Prognosen")
@@ -58,9 +59,9 @@ def prepare_data(df, flight_Abflug, flight_Ankunft):
     
     return route_df
 
-def create_figure(route_df, forecast_df, metrics):
+def create_figure(route_df, forecast_df, metrics, flight_Abflug, flight_Ankunft):
     fig = go.Figure()
-    fig.add_trace(go.Scatter(x=route_df.index, y=route_df['Real'], mode='lines', name='Tatsächliche Preise', line=dict(color='blue')))
+    fig.add_trace(go.Scatter(x=route_df.index, y=route_df['Real'], mode='lines', name='Tatsächliche Preise'))
     fig.add_trace(go.Scatter(x=forecast_df.index, y=forecast_df['Forecast'], mode='lines+markers', name='Prognose', line=dict(color='orange', dash='dash')))
     fig.add_trace(go.Scatter(x=forecast_df.index, y=forecast_df['Lower CI'], mode='lines', line=dict(color='grey'), showlegend=False))
     fig.add_trace(go.Scatter(x=forecast_df.index, y=forecast_df['Upper CI'], mode='lines', line=dict(color='grey'), fill='tonexty', showlegend=False))
@@ -78,7 +79,7 @@ def create_figure(route_df, forecast_df, metrics):
     ))
 
     fig.update_layout(
-        title='SARIMA Prognose',
+        title="SARIMA-Prognose für  die Strecke: {} & {}".format(flight_Abflug, flight_Ankunft),
         xaxis_title='Datum',
         yaxis_title='Preis ($)',
         template='plotly_dark',
@@ -97,10 +98,18 @@ def create_figure(route_df, forecast_df, metrics):
     return fig
 
 layout = html.Div([
-    dcc.Graph(id='price-forecast-graph', style={'width': '70%', 'height': '60%', 'margin-left': 'auto', 'margin-right': 'auto', 'display': 'block'}),
+    dcc.Graph(id='price-forecast-graph', 
+              style={'width': '70%', 'height': '60%', 'margin-left': 'auto', 'margin-right': 'auto', 'display': 'block'}),
     html.Div(id='error-message', style={'color': 'red'}),
-    dcc.Graph(id="Method-Graph", style={'width': '70%', 'height': '60%', 'margin-left': 'auto', 'margin-right': 'auto', 'display': 'block', 'margin-top': '100'})
+    dcc.Graph(id="Method-Graph", 
+              style={'width': '70%', 'height': '60%', 'margin-left': 'auto', 'margin-right': 'auto', 'display': 'block', 'margin-top': '100'}),
+    dcc.Graph(id="LineareRegression", 
+              style={'width': '70%', 'height': '60%', 'margin-left': 'auto', 'margin-right': 'auto', 'display': 'block', 'margin-top': '100'})
 ], style={'background-color': "#121212", 'width': '100%', 'height': '95%', 'font-family': 'Constantia', "margin-top": "200px"})
+
+
+
+
 
 # Callbacks
 @callback(
@@ -140,12 +149,34 @@ def update_graph(flight_Abflug, flight_Ankunft):
         )
         return fig, error_message
 
-# Callback für LSTM-Prognosen
+
+
+
+
+#Callback für LSTM-Prognosen
 @callback(
     Output('Method-Graph', 'figure'),
     [Input('Port3', 'value'),
      Input('Port4', 'value')]
 )
 def update_lstm_graph(flight_Abflug, flight_Ankunft):
+
     fig = get_lstm_predictions(flight_Abflug, flight_Ankunft)
+
+    return fig
+
+
+
+
+#Callback für Lineare Regression
+@callback(
+    Output('LineareRegression', 'figure'),
+    [Input('Port3', 'value'),
+     Input('Port4', 'value')]
+)
+
+def update_LineareRegression(flight_Abflug, flight_Ankunft):
+
+    fig = LineareRegression(flight_Abflug, flight_Ankunft)
+
     return fig
