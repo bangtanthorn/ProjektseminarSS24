@@ -175,10 +175,10 @@ def get_lstm_predictions(flight_Abflug, flight_Ankunft):
     x_values = df['Date']
     y_values = df["$Real"]
     # Linienplot für die historischen Daten hinzufügen
-    fig.add_trace(go.Scatter(x=x_values, y=y_values, mode="lines", name="Historical Data"))
+    fig.add_trace(go.Scatter(x=x_values, y=y_values, mode="lines", name="Historische Daten"))
     # Markierungsplot für die Vorhersagen hinzufügen
     fig.add_trace(go.Scatter(x=pd.date_range(start=x_values.iloc[-1], periods=data_points + 1, freq="M")[1:], 
-                             y=predictions.flatten(), mode="markers", name="Predictions"))
+                             y=predictions.flatten(), mode="markers", name="Vorhersagen"))
     # Linienplot hinzufügen, um die Lücken zwischen den historischen Daten und den Vorhersagen zu schließen
     fig.add_trace(go.Scatter(x=[x_values.iloc[-1], pd.date_range(start=x_values.iloc[-1], periods=data_points + 1, freq="M")[1]],
                              y=[y_values.iloc[-1], predictions.flatten()[0]], mode="lines", name="Combined Line", showlegend=False, line=dict(color='#4169E1')))
@@ -189,7 +189,7 @@ def get_lstm_predictions(flight_Abflug, flight_Ankunft):
     # Das Layout der Grafik anpassen
     fig.update_layout(template="plotly_dark", height=600)
     # Die Achsenbeschriftungen für das Datum und den Kurs festlegen
-    fig.update_xaxes(title="Year")  
+    fig.update_xaxes(title="Jahr")  
     fig.update_yaxes(title="Preis ($)")  
 
     fig.update_layout(title="LSTM-Prognose für die Strecke: {} & {}".format(flight_Abflug, flight_Ankunft))

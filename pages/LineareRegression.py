@@ -12,6 +12,7 @@ from sklearn.model_selection import train_test_split
 
 
 
+
 def LineareRegression(flight_Abflug, flight_Ankunft):
     # Setzen vom Seed
     seed = 45
@@ -23,56 +24,59 @@ def LineareRegression(flight_Abflug, flight_Ankunft):
     df = df[(df["Port1"] == flight_Abflug) & (df["Port2"] == flight_Ankunft)]
     df = df.reset_index(drop=True)
 
-    # Überprüfen, ob genügend Daten vorhanden sind
+    # Überprüfen, ob es genügend Daten gibt
     if df.empty:
-        raise ValueError("Keine Daten für die angegebene Route gefunden.")
+        print("Keine Daten für die angegebene Route vorhanden.")
+        return None
 
-    # Vorbereitung der Daten für die Regression
-    df['Date'] = pd.to_datetime(df['YearMonth'], format='%Y%m')
-    df['Date_ordinal'] = df['Date'].map(dt.datetime.toordinal)
-    x = df['Date_ordinal'].values.reshape(-1, 1)
-    y = df['$Real'].values.reshape(-1, 1)
+    # Jahr und Monat in eine fortlaufende Zahl umwandeln
+    df['Date'] = df.apply(lambda row: datetime(row['Year'], row['Month'], 1), axis=1)
+    df['Date_ordinal'] = pd.to_datetime(df['Date']).map(datetime.toordinal)
+
+    # Merkmale und Zielvariable definieren
+    x = df[['Date_ordinal']]
+    y = df['$Real']
 
     # Daten in Trainings- und Testdaten aufteilen
-    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=5)
+    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=seed)
 
-    # Lineares Regressionsmodell erstellen und trainieren
+    # Lineare Regression anpassen
     model = LinearRegression()
     model.fit(x_train, y_train)
 
-    # Vorhersage auf den Testdaten
-    y_pred_testing = model.predict(x_test)
+    # Prognose für die nächsten 5 Monate erstellen
+    last_date = df['Date'].max()
+    next_months = [last_date + timedelta(days=30*i) for i in range(1, 6)]
+    next_months_ordinal = np.array([datetime.toordinal(date) for date in next_months]).reshape(-1, 1)
 
-    # Vergleich der tatsächlichen und prognostizierten Werte
-    pred_y_df = pd.DataFrame({"Actual Value": y_test.flatten(), "Predicted Value": y_pred_testing.flatten(), "Difference": y_test.flatten() - y_pred_testing.flatten()})
-    print(round(pred_y_df.head(5), 2))
-    print("")
+    predictions = model.predict(next_months_ordinal)
 
-    # Berechnung des R^2-Werts und des Mean Squared Error (MSE)
-    r_sq = model.score(x_test, y_test)
-    mse = np.mean((y_test.flatten() - y_pred_testing.flatten()) ** 2)
+    # Ergebnisse anzeigen
+    forecast = pd.DataFrame({
+        'Date': next_months,
+        'Predicted_Fare': predictions
+    })
 
-    # Vorhersage für zukünftige Datenpunkte
-    future_periods = 5
-    x_pred = np.array([df['Date_ordinal'].max() + i for i in range(1, future_periods + 1)]).reshape(-1, 1)
-    y_pred = model.predict(x_pred)
-    dates_pred = [dt.date.fromordinal(int(date_val)) for date_val in x_pred.flatten()]
+    # Plotly-Grafik erstellen
+    dates = [datetime.fromordinal(int(date_val)).date() for date_val in x['Date_ordinal'].values]
+    dates_pred = [datetime.fromordinal(int(date_val)).date() for date_val in next_months_ordinal.flatten()]
+    y_pred = predictions
 
-    # Erstellung der Diagramme
-    dates = [dt.date.fromordinal(int(date_val)) for date_val in x.flatten()]
     fig = go.Figure()
-    fig.add_trace(go.Scatter(x=dates, y=y.flatten(), mode="lines", name="Historische Daten"))
-    fig.add_trace(go.Scatter(x=dates_pred, y=y_pred.flatten(), mode="markers", name="Vorhersagen", marker=dict(color='red')))
-    fig.add_trace(go.Scatter(x=[dates[-1], dates_pred[0]], y=[y.flatten()[-1], y_pred.flatten()[0]], mode="lines", showlegend=False, line=dict(color='red', dash='dash')))
+    fig.add_trace(go.Scatter(x=dates, y=y.values, mode="lines", name="Historische Daten"))
+    fig.add_trace(go.Scatter(x=dates_pred, y=y_pred, mode="markers", name="Vorhersagen", marker=dict(color='red')))
+    fig.add_trace(go.Scatter(x=[dates[-1], dates_pred[0]], y=[y.values[-1], y_pred[0]], mode="lines", showlegend=False, line=dict(color='red', dash='dash')))
+
     yearly_avg = df.groupby(df['Date'].dt.year)['$Real'].mean().reset_index()
+    yearly_avg['Date'] = yearly_avg['Date'].apply(lambda x: datetime(x, 1, 1))
     fig.add_trace(go.Scatter(x=yearly_avg['Date'], y=yearly_avg['$Real'], mode="lines+markers", name="Jährl. Durchschnittspreis", line=dict(color='orange')))
-    fig.update_layout(template="plotly_dark", height=600, title=f"Lineare Regressions-Prognose für die Strecke {flight_Abflug} to {flight_Ankunft}")
-    fig.update_xaxes(title="Datum")
+
+    fig.update_layout(template="plotly_dark", height=600, title=f"Lineare Regressions-Prognose für die Strecke {flight_Abflug} nach {flight_Ankunft}")
+    fig.update_xaxes(title="Jahr")
     fig.update_yaxes(title="Preis ($)")
     pio.templates.default = "plotly_dark"
 
     return fig
-
 # Beispielaufruf
 #fig, y_pred, r_sq, mse = LineareRegression("Adelaide", "Gold Coast")
 #fig.show()

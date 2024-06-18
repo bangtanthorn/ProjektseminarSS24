@@ -167,7 +167,7 @@ layout = html.Div([
         dcc.Graph(
                 id="Boxplot",
                 style={'width': '50%', "height": '80%', "margin-left": "auto",
-                       "margin-right": "auto", "color": "#696969", "margin-top": "-50px"}
+                       "margin-right": "auto", "color": "#696969", "margin-top": "-35px"}
             ),
 
         ], style={"vertical-align": "top", "margin-left": "-100","margin-top": "-600" }),
