@@ -68,7 +68,7 @@ layout = html.Div([
             html.Div([
                 html.P(""),     
                 html.P(""), 
-                html.Label('Wähle ein Jahr:'),
+                html.Label('Wähle ein Jahr:', style={'font-family': 'Constantia'}),
                 html.Div(
                     dcc.Slider(
                         id='year-slider',
@@ -89,10 +89,11 @@ layout = html.Div([
                        "margin-right": "auto", "color": "#696969", "margin-top": "40px"}),
         dcc.Graph(id='price-heatmap', style={'width': '65%', "height": '90%', "margin-left": "auto",
                        "margin-right": "auto", "color": "#696969", "margin-top": "40px"}),
-        dcc.Graph(id='flight-route-map', style={'width': '65%', "height": '100%', "margin-left": "auto",
+        dcc.Graph(id='flight-route-map', style={'width': '65%', "height": '120%', "margin-left": "auto",
                        "margin-right": "auto", "color": "#696969", "margin-top": "40px"}),
         html.Div(id='distance-text', style={'textAlign': 'center', 'fontSize': 20, 'margin': '10px'}),
-        html.Div(id='stats-summary', className='mb-3'),
+        html.Div(id='stats-summary', className='mb-3', style={'width': '80%', "height": '100%', "margin-left": "auto",
+                       "margin-right": "auto", "margin-top": "40px"}),
     ], className='container-fluid')
 ], className='container-fluid', style={'padding': '0px', 'margin': '0px'})
 
@@ -196,7 +197,9 @@ def update_graph_and_map(selected_origin, selected_destination, selected_year):
                 countrycolor="rgb(32, 32, 32)", 
                 showcoastlines=True,
                 coastlinecolor="rgb(32, 32, 32)", 
-                projection_type='orthographic'
+                projection_type='orthographic',
+               
+                
             )
         )
 

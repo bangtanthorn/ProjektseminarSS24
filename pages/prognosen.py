@@ -60,9 +60,9 @@ def create_figure(route_df, forecast_df, metrics, flight_Abflug, flight_Ankunft)
     fig.add_trace(go.Scatter(x=forecast_df.index, y=forecast_df['Lower CI'], mode='lines', line=dict(color='grey'), showlegend=False))
     fig.add_trace(go.Scatter(x=forecast_df.index, y=forecast_df['Upper CI'], mode='lines', line=dict(color='grey'), fill='tonexty', showlegend=False))
 
-    metrics_table = f"<b>Metricen</b><br><br>MSE: {metrics['mse']:.2f}<br>MAE: {metrics['mae']:.2f}<br>RMSE: {metrics['rmse']:.2f}"
+    metrics_table = f"<b>Metriken</b><br>MSE: {metrics['mse']:.2f}<br>MAE: {metrics['mae']:.2f}<br>RMSE: {metrics['rmse']:.2f}"
     fig.add_trace(go.Scatter(x=[None], y=[None], mode='markers', marker=dict(size=10, color='rgba(0,0,0,0)'), showlegend=True, name=metrics_table, hoverinfo='none'))
-    fig.update_layout(title=f"SARIMA-Prognose für die Strecke: {flight_Abflug} & {flight_Ankunft}", xaxis_title='Datum', yaxis_title='Preis ($)', template='plotly_dark', legend=dict(x=1, y=1, traceorder='normal', font=dict(size=12, color="white")), margin=dict(r=200))
+    fig.update_layout(title=f"SARIMA-Prognose für die Strecke: {flight_Abflug} & {flight_Ankunft}", xaxis_title='Jahr', yaxis_title='Preis ($)', template='plotly_dark', legend=dict(x=1, y=1, traceorder='normal', font=dict(size=12, color="white")), margin=dict(r=200))
     return fig
 
 layout = html.Div([
