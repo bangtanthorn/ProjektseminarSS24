@@ -12,6 +12,12 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 
 
+import pandas as pd
+import numpy as np
+from sklearn.linear_model import LinearRegression
+from datetime import datetime, timedelta
+import plotly.graph_objects as go
+import plotly.io as pio
 
 def LineareRegression(flight_Abflug, flight_Ankunft):
     # Setzen vom Seed
@@ -29,29 +35,36 @@ def LineareRegression(flight_Abflug, flight_Ankunft):
         print("Keine Daten für die angegebene Route vorhanden.")
         return None
 
-    # Jahr und Monat in eine fortlaufende Zahl umwandeln
-    df['Date'] = df.apply(lambda row: datetime(row['Year'], row['Month'], 1), axis=1)
-    df['Date_ordinal'] = pd.to_datetime(df['Date']).map(datetime.toordinal)
+    # Datum als fortlaufende Zahl und Erstellung von Monats-Dummies
+    df['Date'] = pd.to_datetime(df[['Year', 'Month']].assign(day=1))
+    df['Date_ordinal'] = df['Date'].map(datetime.toordinal)
+    month_dummies = pd.get_dummies(df['Month'], prefix='Month')
+    df = pd.concat([df, month_dummies], axis=1)
 
     # Merkmale und Zielvariable definieren
-    x = np.array(df['Date_ordinal']).reshape((-1, 1))
+    feature_columns = ['Date_ordinal'] + [col for col in month_dummies.columns]
+    X = df[feature_columns]
     y = df['$Real'].values.reshape((-1, 1))
 
     # Lineare Regression anpassen
     model = LinearRegression()
-    model.fit(x, y)
+    model.fit(X, y)
 
-    # Prognose für die nächsten 5 Monate erstellen
+    # Prognose für das nächste Jahr erstellen
     last_date = df['Date'].max()
-    next_months = [last_date + timedelta(days=30 * i) for i in range(1, 6)]  # Für die nächsten 5 Monate
-    next_months_ordinal = np.array([datetime.toordinal(date) for date in next_months]).reshape(-1, 1)
-
-    predictions = model.predict(next_months_ordinal)
-   
+    next_dates = [last_date + timedelta(days=30 * i) for i in range(1, 13)]
+    future_data = {
+        'Date': next_dates,
+        'Date_ordinal': [datetime.toordinal(date) for date in next_dates]
+    }
+    future_df = pd.DataFrame(future_data)
+    future_month_dummies = pd.get_dummies(future_df['Date'].dt.month, prefix='Month')
+    future_df = pd.concat([future_df, future_month_dummies], axis=1).reindex(columns=feature_columns, fill_value=0)
+    predictions = model.predict(future_df[feature_columns])
 
     # Plotly-Grafik erstellen
     dates = [datetime.fromordinal(int(date_val)).date() for date_val in df['Date_ordinal'].values]
-    dates_pred = [datetime.fromordinal(int(date_val)).date() for date_val in next_months_ordinal.flatten()]
+    dates_pred = [date.date() for date in next_dates]
     y_pred = predictions.flatten()
 
     fig = go.Figure()
@@ -59,33 +72,9 @@ def LineareRegression(flight_Abflug, flight_Ankunft):
     fig.add_trace(go.Scatter(x=dates_pred, y=y_pred, mode="markers", name="Vorhersagen", marker=dict(color='red')))
     fig.add_trace(go.Scatter(x=[dates[-1], dates_pred[0]], y=[y.flatten()[-1], y_pred[0]], mode="lines", showlegend=False, line=dict(color='red', dash='dash')))
 
-    yearly_avg = df.groupby(df['Date'].dt.year)['$Real'].mean().reset_index()
-    yearly_avg['Date'] = yearly_avg['Date'].apply(lambda x: datetime(x, 1, 1))
-    fig.add_trace(go.Scatter(x=yearly_avg['Date'], y=yearly_avg['$Real'], mode="lines+markers", name="Jährl. Durchschnittspreis", line=dict(color='orange')))
-
-    fig.update_layout(template="plotly_dark", height=600, title=f"Lineare Regressions-Prognose für die Strecke: {flight_Abflug} & {flight_Ankunft}")
+    fig.update_layout(template="plotly_dark", height=600, title=f"Lineare Regressions-Jahresprognose für die Strecke: {flight_Abflug} & {flight_Ankunft}")
     fig.update_xaxes(title="Jahr")
     fig.update_yaxes(title="Preis ($)")
     pio.templates.default = "plotly_dark"
 
     return fig
-
-# Beispielaufruf
-#fig, y_pred, r_sq, mse = LineareRegression("Adelaide", "Gold Coast")
-#fig.show()
-
-#print(f"R^2: {r_sq}")
-#print(f"Mean Squared Error (MSE): {mse}")
-#print(f"Vorhersagewerte: {y_pred}")
-
-
-
-
-
-# Beispielaufruf
-fig = LineareRegression("Hobart", "Melbourne")
-fig.show()
-
-#print(f"R^2: {r_sq}")
-#print(f"Mean Squared Error (MSE): {mse}")
-#print(f"Vorhersagewerte: {y_pred}")

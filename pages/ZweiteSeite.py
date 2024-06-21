@@ -186,22 +186,25 @@ def update_graph_and_map(selected_origin, selected_destination, selected_year):
 
         flight_route_map = go.Figure(data=[flight_path, airport_symbols, selected_airports])
         flight_route_map.update_layout(
-            title=f"Flugroute von {selected_origin} nach {selected_destination}",
-            template='plotly_dark', 
-            geo=dict(
-                showland=True,
-                landcolor="rgb(244, 164, 96)", 
-                showocean=True,
-                oceancolor="rgb(135, 206, 235)", 
-                showcountries=True,
-                countrycolor="rgb(32, 32, 32)", 
-                showcoastlines=True,
-                coastlinecolor="rgb(32, 32, 32)", 
-                projection_type='orthographic',
-               
-                
-            )
-        )
+    title=f"Flugroute von {selected_origin} nach {selected_destination}",
+    template='plotly_dark',
+    geo=dict(
+        showland=True,
+        landcolor="rgb(244, 164, 96)", 
+        showocean=True,
+        oceancolor="rgb(135, 206, 235)", 
+        showcountries=True,
+        countrycolor="rgb(32, 32, 32)", 
+        showcoastlines=True,
+        coastlinecolor="rgb(32, 32, 32)", 
+        projection_type='orthographic',
+        projection_scale=5,  # Erhöhen Sie diesen Wert, um die Weltkugel größer zu machen
+        center=dict(lon=0, lat=0)  # Zentriert die Karte
+    ),
+    width=1200,  # Anpassen nach Bedarf
+    height=1200  # Anpassen nach Bedarf
+)
+
 
         distance_text = f"Distanz von {selected_origin} nach {selected_destination}: {distance_km:.2f} km"
         
