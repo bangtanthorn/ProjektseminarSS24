@@ -69,7 +69,8 @@ layout = html.Div([
     dcc.Graph(id='price-forecast-graph', style={'width': '70%', 'height': '60%', 'margin-left': 'auto', 'margin-right': 'auto', 'display': 'block'}),
     html.Div(id='error-message', style={'color': 'red'}),
     dcc.Graph(id="Method-Graph", style={'width': '70%', 'height': '60%', 'margin-left': 'auto', 'margin-right': 'auto', 'display': 'block', 'margin-top': '100'}),
-    dcc.Graph(id="LineareRegression", style={'width': '70%', 'height': '60%', 'margin-left': 'auto', 'margin-right': 'auto', 'display': 'block', 'margin-top': '100'})
+    dcc.Graph(id="LineareRegression", style={'width': '70%', 'height': '60%', 'margin-left': 'auto', 'margin-right': 'auto', 'display': 'block', 'margin-top': '100'}),
+    dcc.Graph(id="All-Method-Graph", style={'width': '70%', 'height': '60%', 'margin-left': 'auto', 'margin-right': 'auto', 'display': 'block', 'margin-top': '100'})  # Neuer Graph für alle Prognosen
 ], style={'background-color': "#121212", 'width': '100%', 'height': '95%', 'font-family': 'Constantia', "margin-top": "200px"})
 
 @callback([Output('price-forecast-graph', 'figure'), Output('error-message', 'children')], [Input('Port3', 'value'), Input('Port4', 'value')])
@@ -103,3 +104,26 @@ def update_LineareRegression(flight_Abflug, flight_Ankunft):
     fig = LineareRegression(flight_Abflug, flight_Ankunft)
     return fig
 
+@callback(Output('All-Method-Graph', 'figure'), [Input('Port3', 'value'), Input('Port4', 'value')])
+def update_all_method_graph(flight_Abflug, flight_Ankunft):
+    try:
+        # Bereite den Gesamtvergleichsgraph vor
+        fig = go.Figure()
+        # SARIMA Prognose
+        sarima_fig = update_graph(flight_Abflug, flight_Ankunft)[0]
+        for trace in sarima_fig['data']:
+            fig.add_trace(trace)
+        # LSTM Prognose
+        lstm_fig = update_lstm_graph(flight_Abflug, flight_Ankunft)
+        for trace in lstm_fig['data']:
+            fig.add_trace(trace)
+        # Lineare Regression Prognose
+        lr_fig = update_LineareRegression(flight_Abflug, flight_Ankunft)
+        for trace in lr_fig['data']:
+            fig.add_trace(trace)
+        fig.update_layout(title=f'Vergleich aller Prognosemethoden für {flight_Abflug}-{flight_Ankunft}', xaxis_title='Datum', yaxis_title='Preis ($)', template='plotly_dark')
+        return fig
+    except Exception as e:
+        fig = go.Figure()
+        fig.update_layout(title='Fehler bei der Prognose', xaxis_title='Datum', yaxis_title='Preis ($)', template='plotly_dark')
+        return fig
