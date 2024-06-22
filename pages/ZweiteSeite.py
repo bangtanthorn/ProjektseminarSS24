@@ -198,7 +198,7 @@ def update_graph_and_map(selected_origin, selected_destination, selected_year):
         showcoastlines=True,
         coastlinecolor="rgb(32, 32, 32)", 
         projection_type='orthographic',
-        projection_scale=5,  # Erhöhen Sie diesen Wert, um die Weltkugel größer zu machen
+        projection_scale=1,  # Erhöhen Sie diesen Wert, um die Weltkugel größer zu machen
         center=dict(lon=0, lat=0)  # Zentriert die Karte
     ),
     width=1200,  # Anpassen nach Bedarf
