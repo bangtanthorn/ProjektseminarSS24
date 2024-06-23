@@ -11,9 +11,6 @@ import random
 import os
 from dash.dash_table.Format import Group
 
-# app = dash.Dash(__name__) 
-dash.register_page(__name__, path='/zweite-seite', name="Fluganalyse2")
-
 import dash
 from dash import dcc, html, dash_table
 from dash.dependencies import Input, Output
@@ -23,6 +20,13 @@ import os
 import random
 import plotly.express as px
 import plotly.graph_objects as go
+
+
+
+
+dash.register_page(__name__, path='/zweite-seite', name="Fluganalyse2")
+
+
 
 def haversine(lon1, lat1, lon2, lat2):
     lon1, lat1, lon2, lat2 = map(np.radians, [lon1, lat1, lon2, lat2])
@@ -58,7 +62,6 @@ colors = ['red', 'blue', 'green', 'orange', 'purple', 'yellow']
 # Zufällige Auswahl von Farben für jeden Flughafen
 airport_colors = [random.choice(colors) for _ in range(len(df_airports))]
 
-# app = dash.Dash(__name__)
 
 layout = html.Div([
     html.Div([
@@ -68,7 +71,7 @@ layout = html.Div([
             html.Div([
                 html.P(""),     
                 html.P(""), 
-                html.Label('Wähle ein Jahr:', style={'font-family': 'Constantia'}),
+                html.Label('Wählen Sie ein Jahr:', style={'font-family': 'Constantia'}),
                 html.Div(
                     dcc.Slider(
                         id='year-slider',
@@ -97,6 +100,9 @@ layout = html.Div([
     ], className='container-fluid')
 ], className='container-fluid', style={'padding': '0px', 'margin': '0px'})
 
+
+
+
 @callback(
     Output('destination-dropdown', 'options'),
     Input('Port3', 'value')
@@ -104,6 +110,10 @@ layout = html.Div([
 def set_destination_options(selected_origin):
     destinations = df_cleaned[df_cleaned['Origin'] == selected_origin]['Destination'].unique()
     return [{'label': dest, 'value': dest} for dest in destinations if dest in common_airports]
+
+
+
+
 
 @callback(
     Output('destination-dropdown', 'value'),
@@ -212,6 +222,11 @@ def update_graph_and_map(selected_origin, selected_destination, selected_year):
                                 (df_cleaned['Destination'] == selected_destination) &
                                 (df_cleaned['Year'] == selected_year)]
         summary = stats_data['$Real'].describe()
+
+
+        # Werte auf zwei Nachkommastellen runden
+        summary = summary.round(2)
+
         summary_table = html.Div([
             dash_table.DataTable(
                 data=summary.reset_index().to_dict('records'),
@@ -226,6 +241,9 @@ def update_graph_and_map(selected_origin, selected_destination, selected_year):
         ], style={'width': '70%', 'margin': '0 auto'})
 
         return line_fig, bar_fig, heatmap_fig, flight_route_map, distance_text, summary_table
+    
+
+
     except Exception as e:
         return go.Figure(), go.Figure(), go.Figure(), go.Figure(), f"Fehler: {str(e)}", "Statistische Daten nicht verfügbar"
 

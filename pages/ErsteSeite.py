@@ -16,12 +16,6 @@ from dash import dash_table
 
 
 
-#Erstellung vom Dataframe und Bereinigung 
-#df = pd.read_csv("AUS_Fares_March2024.csv", sep=',')
-#df = df[["Year","Month","YearMonth","Port1","Port2","Route","$Value","$Real"]]
-#print(df.info())
-#unique_values = df['Port1'].unique()
-#print(unique_values)
 
 df = pd.read_csv("AUS_Fares_March2024.csv", sep=',')
 df = df[["Year", "Month", "YearMonth", "Port1", "Port2", "Route", "$Real"]]
@@ -32,10 +26,6 @@ print(df.tail(20))
 
 
 dash.register_page(__name__, path='/', name = "Fluganalyse1")
-
-
-#df = pd.read_csv('AUS_Fares_March2024.csv')
-#df_cleaned = df[["Year","Month","YearMonth","Port1","Port2","Route","$Value","$Real"]].copy()
 
 
 
@@ -77,11 +67,10 @@ colors = {
 }
 
 table_columns = [
-    {'name': 'Year', 'id': 'Year', },
-    {'name': 'Month', 'id': 'Month'},
-    {'name': '$Real', 'id': '$Real'}
+    {'name': 'Jahr', 'id': 'Year'},
+    {'name': 'Monat', 'id': 'Month'},
+    {'name': 'Preis', 'id': '$Real'}
 ]
-
 
 layout = html.Div([
     html.Div([
@@ -115,16 +104,6 @@ layout = html.Div([
         style={"font-size": "25px", "margin-top": "30px", 'font-family': 'Constantia', "margin-top": "30px"}
             )
         ]),
-        # html.P("Distanz:", style={'font-size': '20px', 'color': colors['text']}),
-        # html.Div([
-        #     html.Span("Land: ", style={'font-size': '20px', 'color': colors['text']}),
-        #     html.Span(id="Distanz",style={'font-size': '20px','color': colors['Button']})
-        # ], style={'display': 'inline-block', 'margin-bottom': '15px'}),
-        # html.Br(),
-        #html.Div([
-        #html.Span("City: ", style={'font-size': '25px', 'color': colors['text']}),
-        #html.Span(id="Land", style={'font-size': '25px','color': colors['Button']})
-        #], style={'display': 'inline-block', 'margin-bottom': '15px'}),
         ], style={"margin-right": "2200px" })
         ]),
 
@@ -143,8 +122,8 @@ layout = html.Div([
 
         dcc.Tabs(id='tabs', value="Liniendiagramm", children=[
         dcc.Tab(label='Liniendiagramm', value='Liniendiagramm', children=[], style=tab_style, selected_style=tab_selected_style),
-        dcc.Tab(label='Scatter-Plot', value='Scatter-Plot', children=[], style=tab_style, selected_style=tab_selected_style),
-        dcc.Tab(label='Area Chart', value='Area Chart', children=[], style=tab_style, selected_style=tab_selected_style)],
+        dcc.Tab(label='Streudiagramm', value='Scatter-Plot', children=[], style=tab_style, selected_style=tab_selected_style),
+        dcc.Tab(label='Flächendiagramm', value='Area Chart', children=[], style=tab_style, selected_style=tab_selected_style)],
         
         style = {'width': '50%',
                  'font-size': '80%',
@@ -218,39 +197,6 @@ style={'background-color': "#121212",
       }
 
 
-# @callback(
-#     Output(component_id= "Distanz", component_property="children"),
-#     Output(component_id= "Land", component_property="children"),
-#     Input(component_id= "flight_Abflug", component_property="data"),
-#     Input(component_id= "flight_Ankunft", component_property="data"),
-# )
-
-
-# def Fluginfo(flight_Abflug, flight_Ankunft):
-
-#     # Lese die Flughafendaten ein
-#     airports = pd.read_csv("https://raw.githubusercontent.com/jpatokal/openflights/master/data/airports.dat", header=None, sep=',')
-#     # Benenne die Spalten um
-#     airports.columns = ["ID", "Name", "City", "Country", "IATA", "ICAO", "Latitude", "Longitude", "Altitude", "Timezone", "DST", "Tz database time zone", "Type", "Source"]
-#     # Filtern Sie die Zeile für Gatwick
-#     Port_1 = airports[airports["Name"] == flight_Abflug]
-#     Port_1 = Port_1.reset_index(drop=True)
-#     # Extrahieren Sie die Longitude und Latitude Werte
-#     Port_1 = (Port_1["Latitude"].iloc[0], Port_1["Longitude"].iloc[0])
-   
-
-#     Port_2 = airports[airports["Name"] == flight_Ankunft]
-#     # Extrahieren Sie die Longitude und Latitude Werte
-#     Port_2 = (Port_2["Latitude"].iloc[0], Port_2["Longitude"].iloc[0])
-
-#     # Berechne die Entfernung zwischen Gatwick und Heathrow
-#     distance = geodesic(Port_2, Port_2).kilometers
-
-
-#     Land = (Port_2["Land"].iloc[0])
-
-#     return distance, Land
-
 
 
 @callback(
@@ -305,10 +251,6 @@ def ZweiteStrecke(flight_Abflug, flight_Ankunft, start_date, end_date, selected_
     
     filtered_df = df.loc[(df["Year"] >= start_year) & (df["Year"] <= end_year)]
 
-    # Maximum und Minimum pro Jahr extrahiere
-    #min_values = filtered_df.groupby("Year")["$Value"].min()
-
-    #fig = go.Figure([max_line, min_line])
 
     fig = go.Figure()
 
@@ -475,7 +417,7 @@ def ZweiteStrecke(flight_Abflug, flight_Ankunft, start_date, end_date):
     fig = px.box(filtered_df, x="Year", y="$Real")
 
     fig.update_layout(
-        #title=f"Preisentwicklung für die Strecke: {flight_Abflug} & {flight_Ankunft}",
+      
         xaxis=dict(title="Jahr"),
         yaxis=dict(title="Preis"),
         template="plotly_dark"
