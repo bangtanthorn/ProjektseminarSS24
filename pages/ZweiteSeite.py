@@ -72,35 +72,26 @@ layout = html.Div([
                 html.P(""),     
                 html.P(""), 
                 html.Label('Wählen Sie ein Jahr:', style={'font-family': 'Constantia'}),
-                html.Div(
-                    dcc.Slider(
-                        id='year-slider',
-                        min=df_cleaned['Year'].min(),
-                        max=df_cleaned['Year'].max(),
-                        value=df_cleaned['Year'].min(),
-                        marks={str(year): str(year) for year in df_cleaned['Year'].unique()},
-                        step=None,
-                        included=False,
-                    ),
-                    style={'width': '50%', 'margin': '0 auto'}  # Breite des Sliders angepasst
+                dcc.Slider(
+                    id='year-slider',
+                    min=df_cleaned['Year'].min(),
+                    max=df_cleaned['Year'].max(),
+                    value=df_cleaned['Year'].min(),
+                    marks={str(year): str(year) for year in df_cleaned['Year'].unique()},
+                    step=None,
+                    included=False,
+                    className='slider-styles'
                 ),
-            ], className='mb-3')
+            ], className='mb-3', style={'width': '65%', 'margin': '0 auto'})  # Sliderelementbreite auf 65% gesetzt
         ], className='row'),
-        dcc.Graph(id='price-time-series', style={'width': '65%', "height": '90%', "margin-left": "auto",
-                       "margin-right": "auto", "color": "#696969", "margin-top": "40px"}),
-        dcc.Graph(id='average-price-bar', style={'width': '65%', "height": '%', "margin-left": "auto",
-                       "margin-right": "auto", "color": "#696969", "margin-top": "40px"}),
-        dcc.Graph(id='price-heatmap', style={'width': '65%', "height": '90%', "margin-left": "auto",
-                       "margin-right": "auto", "color": "#696969", "margin-top": "40px"}),
-        dcc.Graph(id='flight-route-map', style={'width': '65%', "height": '120%', "margin-left": "auto",
-                       "margin-right": "auto", "color": "#696969", "margin-top": "40px"}),
+        dcc.Graph(id='price-time-series', style={'width': '65%', "height": '90%', "margin": "0 auto", "color": "#696969", "margin-top": "40px"}),
+        dcc.Graph(id='average-price-bar', style={'width': '65%', "height": '%', "margin": "0 auto", "color": "#696969", "margin-top": "40px"}),
+        dcc.Graph(id='price-heatmap', style={'width': '65%', "height": '90%', "margin": "0 auto", "color": "#696969", "margin-top": "40px"}),
+        dcc.Graph(id='flight-route-map', style={'width': '65%', "height": '120%', "margin": "0 auto", "color": "#696969", "margin-top": "40px"}),
         html.Div(id='distance-text', style={'textAlign': 'center', 'fontSize': 20, 'margin': '10px'}),
-        html.Div(id='stats-summary', className='mb-3', style={'width': '80%', "height": '100%', "margin-left": "auto",
-                       "margin-right": "auto", "margin-top": "40px"}),
-    ], className='container-fluid')
+        html.Div(id='stats-summary', className='mb-3', style={'width': '65%', "height": '100%', "margin": "0 auto", "margin-top": "40px"}),
+    ], className='container-fluid', style={'padding': '0px', 'margin': '0px', 'text-align': 'center', 'width': '100%'})
 ], className='container-fluid', style={'padding': '0px', 'margin': '0px'})
-
-
 
 
 @callback(

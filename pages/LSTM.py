@@ -83,7 +83,7 @@ def get_lstm_predictions(flight_Abflug, flight_Ankunft):
     # Vorhersagen erstellen
     last_sequence = scaled_data[-lookback_window:]
     predictions = []
-    data_points = 5
+    data_points = 12
 
     for _ in range(data_points):
         input_data = np.reshape(last_sequence, (1, lookback_window, 1))
@@ -115,7 +115,7 @@ def get_lstm_predictions(flight_Abflug, flight_Ankunft):
     y_values = df["$Real"]
     fig.add_trace(go.Scatter(x=x_values, y=y_values, mode="lines", name="Historische Daten"))
     fig.add_trace(go.Scatter(x=pd.date_range(start=x_values.iloc[-1], periods=data_points + 1, freq="M")[1:], 
-                             y=predictions.flatten(), mode="markers", name="Vorhersagen"))
+                             y=predictions.flatten(), mode='lines+markers', name="Vorhersagen"))
     fig.add_trace(go.Scatter(x=[x_values.iloc[-1], pd.date_range(start=x_values.iloc[-1], periods=data_points + 1, freq="M")[1]],
                              y=[y_values.iloc[-1], predictions.flatten()[0]], mode="lines", name="Combined Line", showlegend=False, line=dict(color='#4169E1')))
     yearly_avg = df.groupby(df['Date'].dt.year)['$Real'].mean().reset_index()

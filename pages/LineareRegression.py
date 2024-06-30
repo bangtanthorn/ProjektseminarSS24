@@ -85,21 +85,21 @@ def LineareRegression(flight_Abflug, flight_Ankunft):
 
     fig = go.Figure()
     fig.add_trace(go.Scatter(x=dates, y=y.flatten(), mode="lines", name="Historische Daten"))
-    fig.add_trace(go.Scatter(x=dates_pred, y=y_pred, mode="markers", name="Vorhersagen", marker=dict(color='red')))
+    fig.add_trace(go.Scatter(x=dates_pred, y=y_pred, mode='lines+markers', name="Vorhersagen", marker=dict(color='red')))
     fig.add_trace(go.Scatter(x=[dates[-1], dates_pred[0]], y=[y.flatten()[-1], y_pred[0]], mode="lines", showlegend=False, line=dict(color='red', dash='dash')))
 
-    # Metriken als Annotation hinzufügen
-    metrics_text = f"MSE: {mse:.2f}, MAE: {mae:.2f}, RMSE: {rmse:.2f}"
-    fig.add_annotation(
-        xref="paper", yref="paper",
-        x=0.5, y=-0.15,
-        showarrow=False,
-        text=metrics_text,
-        font=dict(size=12, color="white"),
-        align="center",
-        bgcolor="rgba(0,0,0,0.5)",
-        bordercolor="rgba(0,0,0,0.5)"
-    )
+    # # Metriken als Annotation hinzufügen
+    # metrics_text = f"MSE: {mse:.2f}, MAE: {mae:.2f}, RMSE: {rmse:.2f}"
+    # fig.add_annotation(
+    #     xref="paper", yref="paper",
+    #     x=0.5, y=-0.15,
+    #     showarrow=False,
+    #     text=metrics_text,
+    #     font=dict(size=12, color="white"),
+    #     align="center",
+    #     bgcolor="rgba(0,0,0,0.5)",
+    #     bordercolor="rgba(0,0,0,0.5)"
+    # )
 
     fig.update_layout(template="plotly_dark", height=600, title=f"Saisonale Lineare Regression-Prognose für die Strecke: {flight_Abflug} & {flight_Ankunft}")
 

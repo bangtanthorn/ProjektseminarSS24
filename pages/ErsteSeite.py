@@ -76,53 +76,62 @@ table_columns = [
 layout = html.Div([
     html.Div([
         html.Div([
-            html.Div([  #div über alle
-            html.P("Wählen Sie einen Zeitraum: ", style={"font-size": "25px", "margin-right": "1800px", "margin-top": "100px", 'font-family': 'Constantia'}),
-            html.Br(),
             html.Div([
+                html.P("Wählen Sie einen Zeitraum: ", style={"font-size": "25px", "margin-right": "2150px", "margin-top": "100px", 'font-family': 'Constantia'}),
+                #html.Br(),
                 html.Div([
-                    html.P("Von:", style={"font-size": "25px", "margin-right": "700px", "margin-top": "100px", 'font-family': 'Constantia'}),
+                    html.Div([
+                        html.P("Von:", style={"font-size": "25px", "margin-right": "2400px", "margin-top": "50px", 'font-family': 'Constantia'}),
+                        html.Br(),
+                        #dbc.Row([
+                        html.Div([
+                                dcc.Dropdown(
+                                    options=[{"label": str(i), "value": str(i)} for i in range(1, 13)],
+                                    id='start-month',
+                                    value="1",
+                                    clearable=False,
+                                    style={'width': '20%', "color": "black", 'font-family': 'Constantia', "font-size": "20px",  "margin-top": "-20px", "margin-left": "95px"}
+                                ), 
+                                dcc.Dropdown(
+                                    options=[{"label": str(i), "value": str(i)} for i in range(2010, 2025)],
+                                    id='start-year',
+                                    value="2010",
+                                    clearable=False,
+                                    style={'width': '30%', "color": "black", 'font-family': 'Constantia', "font-size": "20px", "margin-top": "-38px", "margin-left": "160px"}
+                                ), 
+                        ],style={"margin-left": "-200px"}),
+                    ], ),
                     html.Br(),
-                    dcc.Dropdown(
-                        options=[{"label": str(i), "value": str(i)} for i in range(1, 13)],
-                        id='start-month',
-                        value="1",
-                        clearable=False,
-                        style={'width': '20%', "color": "black", 'font-family': 'Constantia', "font-size": "20px"}
-                    ),
-                    dcc.Dropdown(
-                        options=[{"label": str(i), "value": str(i)} for i in range(2010, 2025)],
-                        id='start-year',
-                        value="2010",
-                        clearable=False,
-                        style={'width': '30%', "color": "black", 'font-family': 'Constantia', "font-size": "20px"}
-                    ),
-                ], style={'width': '49%'}),
-                html.Br(),
-                html.Div([
-                    html.P("Bis:", style={"font-size": "25px", "margin-right": "700px", "margin-top": "100px", 'font-family': 'Constantia'}),
-                    html.Br(),
-                    dcc.Dropdown(
-                        options=[{"label": str(i), "value": str(i)} for i in range(1, 13)],
-                        id='end-month',
-                        value="12",
-                         clearable=False,
-                        style={'width': '20%', "color": "black", 'font-family': 'Constantia', "font-size": "20px", "margin-right": "1000px"}
-                    ),
-                    dcc.Dropdown(
-                        options=[{"label": str(i), "value": str(i)} for i in range(2010, 2025)],
-                        id='end-year',
-                        value="2024",
-                         clearable=False,
-                        style={'width': '30%', "color": "black", 'font-family': 'Constantia', "font-size": "20px", "margin-right": "1000px"}
-                    ),
-                ], style={'width': '49%'})
-            ])
-            ],  style={},)
+                    html.Div([
+                        html.P("Bis:", style={"font-size": "25px", "margin-right": "950px", "margin-top": "15px", 'font-family': 'Constantia'}),
+                        html.Br(),
+                        #dbc.Row([
+                                html.Div([
+                                dcc.Dropdown(
+                                    options=[{"label": str(i), "value": str(i)} for i in range(1, 13)],
+                                    id='end-month',
+                                    value="12",
+                                    clearable=False,
+                                    style={'width': '20%', "color": "black", 'font-family': 'Constantia', "font-size": "20px", "margin-top": "-20px", "margin-left": "90px", "margin-top": "-10px"}
+                                ),
+                            
+                                dcc.Dropdown(
+                                    options=[{"label": str(i), "value": str(i)} for i in range(2010, 2025)],
+                                    id='end-year',
+                                    value="2024",
+                                    clearable=False,
+                                    style={'width': '30%', "color": "black", 'font-family': 'Constantia', "font-size": "20px", "margin-left": "160px","margin-top": "-37px"}
+                                ),
+                            ],style={"margin-left": "-200px"})
+                            
+                        #]),
+                    ], style={}),
+                ])
+            ], style={'display': 'inline-block', "text-align": "justify"}),
         ]),
     
         html.Div([
-            html.P("Auswahl: ", style={"font-size": "30px", "margin-top": "50px", 'font-family': 'Constantia'}),
+            html.P("Auswahl: ", style={"font-size": "30px", "margin-top": "180px", 'font-family': 'Constantia'}),
             html.Br(),
             dcc.Checklist(
                 id='price-type-checklist',
@@ -134,7 +143,7 @@ layout = html.Div([
                 value=['MAX', "MIN", "DURCH"],
                 style={"font-size": "25px", "margin-top": "30px", 'font-family': 'Constantia'}
             )
-        ], style={"margin-right": "2200px"})
+        ], style={"margin-right": "2200px", 'display': 'inline-block', "text-align": "justify"})
     ]),
     html.P(""),
     html.P(""),
@@ -142,7 +151,7 @@ layout = html.Div([
         html.Div([
             dcc.Graph(
                 id="time-series-chart",
-                style={'width': '50%', "height": '80%', "margin-left": "auto", "margin-right": "auto", "color": "#696969", "margin-top": "-830px"}
+                style={'width': '50%', "height": '80%', "margin-left": "auto", "margin-right": "auto", "color": "#696969", "margin-top": "-790px"}
             ),
             dcc.Tabs(
                 id='tabs',
@@ -193,13 +202,12 @@ layout = html.Div([
                 'maxHeight': '1340px',
                 'overflowY': 'scroll',
                 "margin-top": "-1350px",
-                "margin-left": "2000px"
+                "margin-left": "2200px"
             },
             fill_width=False
         )
     ])
 ])
-
 
 layout = layout
 
@@ -394,31 +402,34 @@ def ZweiteStrecke(flight_Abflug, flight_Ankunft, start_month, start_year, end_mo
     Input('end-month', component_property="value"),
     Input('end-year', component_property="value"),
 )
-def update_boxplot(flight_Abflug, flight_Ankunft,  start_month, start_year, end_month, end_year, ):
-
+def update_boxplot(flight_Abflug, flight_Ankunft, start_month, start_year, end_month, end_year):
     df = pd.read_csv("AUS_Fares_March2024.csv", sep=',', dtype={"Year": int})
     df = df[(df["Port1"] == flight_Abflug) & (df["Port2"] == flight_Ankunft)]
     df = df[["Year", "$Real", "YearMonth"]]
-    
-    #start_year = datetime.strptime(start_date, "%Y-%m-%d").year
-    #end_year = datetime.strptime(end_date, "%Y-%m-%d").year
-    
-    #filtered_df = df.loc[(df["Year"] >= start_year) & (df["Year"] <= end_year)]
 
     start_date = datetime(int(start_year), int(start_month), 1)
     end_date = datetime(int(end_year), int(end_month), 1)
 
-    filtered_df = df[(df["YearMonth"] >= int(start_year + start_month.zfill(2))) & (df["YearMonth"] <= int(end_year + end_month.zfill(2)))]
+    start_year_month = int(start_year + start_month.zfill(2))
+    end_year_month = int(end_year + end_month.zfill(2))
+
+    filtered_df = df[(df["YearMonth"] >= start_year_month) & (df["YearMonth"] <= end_year_month)]
 
     fig = go.Figure()
-    fig.add_trace(go.Box(y=filtered_df['$Real'], name='Boxplot'))
 
-    fig.update_layout(title="Preisverteilung",
-                      xaxis_title="Jahr",
-                      yaxis_title="Preis",
-                      template="plotly_dark")
+    years = filtered_df["Year"].unique()
+    for year in years:
+        year_data = filtered_df[filtered_df["Year"] == year]
+        fig.add_trace(go.Box(y=year_data['$Real'], name=str(year)))
+
+    fig.update_layout(
+        title="Preisverteilung nach Jahr",
+        xaxis_title="Jahr",
+        yaxis_title="Preis",
+        template="plotly_dark"
+    )
+
     return fig
-
 
 @callback(
     Output(component_id='table', component_property='data'),
