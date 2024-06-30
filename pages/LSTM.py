@@ -148,7 +148,7 @@ def get_lstm_predictions(flight_Abflug, flight_Ankunft):
         )
     )
 
-    return fig
+  
 
     return fig
 
