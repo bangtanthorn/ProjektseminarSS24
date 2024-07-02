@@ -90,14 +90,16 @@ layout = html.Div([
                                     id='start-month',
                                     value="1",
                                     clearable=False,
-                                    style={'width': '20%', "color": "black", 'font-family': 'Constantia', "font-size": "20px",  "margin-top": "-20px", "margin-left": "95px"}
+                                    className='custom-dropdownNew',
+                                    style={'width': '25%', "color": "#000000", 'font-family': 'Constantia', "font-size": "20px",  "margin-top": "-20px", "margin-left": "95px"}
                                 ), 
                                 dcc.Dropdown(
                                     options=[{"label": str(i), "value": str(i)} for i in range(2010, 2025)],
                                     id='start-year',
                                     value="2010",
                                     clearable=False,
-                                    style={'width': '30%', "color": "black", 'font-family': 'Constantia', "font-size": "20px", "margin-top": "-38px", "margin-left": "160px"}
+                                    className='custom-dropdown',
+                                    style={'width': '28%', "color": "black", 'font-family': 'Constantia', "font-size": "20px", "margin-top": "-38px", "margin-left": "215px"}
                                 ), 
                         ],style={"margin-left": "-200px"}),
                     ], ),
@@ -112,7 +114,8 @@ layout = html.Div([
                                     id='end-month',
                                     value="12",
                                     clearable=False,
-                                    style={'width': '20%', "color": "black", 'font-family': 'Constantia', "font-size": "20px", "margin-top": "-20px", "margin-left": "90px", "margin-top": "-10px"}
+                                    className='custom-dropdownNew',
+                                    style={'width': '25%', "color": "black", 'font-family': 'Constantia', "font-size": "20px", "margin-top": "-20px", "margin-left": "93px", "margin-top": "-10px"}
                                 ),
                             
                                 dcc.Dropdown(
@@ -120,7 +123,8 @@ layout = html.Div([
                                     id='end-year',
                                     value="2024",
                                     clearable=False,
-                                    style={'width': '30%', "color": "black", 'font-family': 'Constantia', "font-size": "20px", "margin-left": "160px","margin-top": "-37px"}
+                                    className='custom-dropdown',
+                                    style={'width': '28%', "color": "black", 'font-family': 'Constantia', "font-size": "20px", "margin-left": "215px","margin-top": "-37px"}
                                 ),
                             ],style={"margin-left": "-200px"})
                             

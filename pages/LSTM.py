@@ -115,9 +115,9 @@ def get_lstm_predictions(flight_Abflug, flight_Ankunft):
     y_values = df["$Real"]
     fig.add_trace(go.Scatter(x=x_values, y=y_values, mode="lines", name="Historische Daten"))
     fig.add_trace(go.Scatter(x=pd.date_range(start=x_values.iloc[-1], periods=data_points + 1, freq="M")[1:], 
-                             y=predictions.flatten(), mode='lines+markers', name="Vorhersagen"))
+                             y=predictions.flatten(), mode='lines+markers', name="Vorhersagen", line=dict(color='yellow')))
     fig.add_trace(go.Scatter(x=[x_values.iloc[-1], pd.date_range(start=x_values.iloc[-1], periods=data_points + 1, freq="M")[1]],
-                             y=[y_values.iloc[-1], predictions.flatten()[0]], mode="lines", name="Combined Line", showlegend=False, line=dict(color='#4169E1')))
+                             y=[y_values.iloc[-1], predictions.flatten()[0]], mode="lines", showlegend=False, line=dict(color='yellow', dash='dash')))
     yearly_avg = df.groupby(df['Date'].dt.year)['$Real'].mean().reset_index()
     fig.add_trace(go.Scatter(x=yearly_avg['Date'], y=yearly_avg['$Real'], mode="lines+markers", name="Jährl. Durchschnittspreis", line=dict(color='orange')))
     fig.update_layout(template="plotly_dark", height=600)
@@ -126,7 +126,7 @@ def get_lstm_predictions(flight_Abflug, flight_Ankunft):
     fig.update_layout(title="LSTM-Prognose für die Strecke: {} & {}".format(flight_Abflug, flight_Ankunft))
 
     # Manuelles Hinzufügen der Metriken in die Legende
-    metrics_table = f"<b>Metriken</b><br>MSE: {mse:.2f}<br>MAE: {mae:.2f}<br>RMSE: {rmse:.2f}"
+    metrics_table = f"LSTM<b>Metriken</b><br>MSE: {mse:.2f}<br>MAE: {mae:.2f}<br>RMSE: {rmse:.2f}"
     fig.add_trace(go.Scatter(
         x=[None], y=[None],
         mode='markers',
@@ -148,10 +148,7 @@ def get_lstm_predictions(flight_Abflug, flight_Ankunft):
         )
     )
 
-  
-
     return fig
-
 
 # Beispielaufruf der Funktion
 #flight_Abflug = "Cairns"

@@ -1,0 +1,15 @@
+/* Stil für Dropdown-Container */
+.custom-dropdown .Select-menu-outer {
+    width: 210px !important; /* Automatische Breite basierend auf dem Inhalt */
+    left: 43% !important; /* Zentrierung horizontal */
+    transform: translateX(-50%); /* Zentrierung horizontal */
+    top: 100% !important; /* Positionierung unter dem Dropdown */
+}
+
+
+.custom-dropdownNew .Select-menu-outer {
+    width: 170px !important; /* Automatische Breite basierend auf dem Inhalt */
+    left:27% !important; /* Zentrierung horizontal */
+    transform: translateX(-50%); /* Zentrierung horizontal */
+    top: 100% !important; /* Positionierung unter dem Dropdown */
+}

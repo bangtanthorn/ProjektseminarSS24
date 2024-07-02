@@ -21,14 +21,8 @@ import plotly.io as pio
 
 def LineareRegression(flight_Abflug, flight_Ankunft):
     from sklearn.metrics import mean_squared_error, mean_absolute_error
-    import numpy as np
-    import pandas as pd
-    import plotly.graph_objects as go
-    import plotly.io as pio
-    from sklearn.linear_model import LinearRegression
-    from datetime import datetime, timedelta
 
-    # Setzen vom Seed
+    # Seed für Reproduzierbarkeit setzen
     seed = 45
     np.random.seed(seed)
 
@@ -38,7 +32,7 @@ def LineareRegression(flight_Abflug, flight_Ankunft):
     df = df[(df["Port1"] == flight_Abflug) & (df["Port2"] == flight_Ankunft)]
     df = df.reset_index(drop=True)
 
-    # Überprüfen, ob es genügend Daten gibt
+    # Überprüfen, ob genügend Daten vorhanden sind
     if df.empty:
         print("Keine Daten für die angegebene Route vorhanden.")
         return None
@@ -60,7 +54,7 @@ def LineareRegression(flight_Abflug, flight_Ankunft):
 
     # Prognose für das nächste Jahr erstellen
     last_date = df['Date'].max()
-    next_dates = [last_date + timedelta(days=30 * i) for i in range(1, 13)]
+    next_dates = [last_date + pd.DateOffset(months=i) for i in range(1, 13)]
     future_data = {
         'Date': next_dates,
         'Date_ordinal': [datetime.toordinal(date) for date in next_dates]
@@ -85,24 +79,12 @@ def LineareRegression(flight_Abflug, flight_Ankunft):
 
     fig = go.Figure()
     fig.add_trace(go.Scatter(x=dates, y=y.flatten(), mode="lines", name="Historische Daten"))
+    yearly_avg = df.groupby(df['Date'].dt.year)['$Real'].mean().reset_index()
+    fig.add_trace(go.Scatter(x=yearly_avg['Date'], y=yearly_avg['$Real'], mode="lines+markers", name="Jährl. Durchschnittspreis", line=dict(color='orange')))
     fig.add_trace(go.Scatter(x=dates_pred, y=y_pred, mode='lines+markers', name="Vorhersagen", marker=dict(color='red')))
     fig.add_trace(go.Scatter(x=[dates[-1], dates_pred[0]], y=[y.flatten()[-1], y_pred[0]], mode="lines", showlegend=False, line=dict(color='red', dash='dash')))
 
-    # # Metriken als Annotation hinzufügen
-    # metrics_text = f"MSE: {mse:.2f}, MAE: {mae:.2f}, RMSE: {rmse:.2f}"
-    # fig.add_annotation(
-    #     xref="paper", yref="paper",
-    #     x=0.5, y=-0.15,
-    #     showarrow=False,
-    #     text=metrics_text,
-    #     font=dict(size=12, color="white"),
-    #     align="center",
-    #     bgcolor="rgba(0,0,0,0.5)",
-    #     bordercolor="rgba(0,0,0,0.5)"
-    # )
-
-    fig.update_layout(template="plotly_dark", height=600, title=f"Saisonale Lineare Regression-Prognose für die Strecke: {flight_Abflug} & {flight_Ankunft}")
-
+    # Metriken als Annotation hinzufügen
     metrics_table = f"<b>Metriken</b><br>MSE: {mse:.2f}<br>MAE: {mae:.2f}<br>RMSE: {rmse:.2f}"
     fig.add_trace(go.Scatter(
         x=[None], y=[None],
@@ -113,6 +95,8 @@ def LineareRegression(flight_Abflug, flight_Ankunft):
         hoverinfo='none'
     ))
 
+    fig.update_layout(template="plotly_dark", height=600, title=f"Saisonale Lineare Regression-Prognose für die Strecke: {flight_Abflug} & {flight_Ankunft}")
+
     fig.update_layout(
         legend=dict(
             x=0.99, y=0.99,
@@ -121,7 +105,6 @@ def LineareRegression(flight_Abflug, flight_Ankunft):
             bgcolor="rgba(0,0,0,0)",
             bordercolor="rgba(0,0,0,0)",
             borderwidth=0,
-            
         )
     )
     fig.update_xaxes(title="Jahr")
