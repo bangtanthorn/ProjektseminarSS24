@@ -100,14 +100,25 @@ def get_lstm_predictions(flight_Abflug, flight_Ankunft):
     Xtest, Ytest = np.array(Xtest), np.array(Ytest)
     Xtest = np.reshape(Xtest, (Xtest.shape[0], Xtest.shape[1], 1))
     test_predictions = model.predict(Xtest)
-    test_predictions = scaler.inverse_transform(test_predictions)
 
-    # Berechnung der Fehlermaße
-    Ytest = scaler.inverse_transform([Ytest])
-    Ytest = np.reshape(Ytest, (-1,))
-    mae = round(mean_absolute_error(Ytest, test_predictions), 2)
-    mse = round(mean_squared_error(Ytest, test_predictions), 2)
+    Ytest_scaled = Ytest
+    test_predictions_scaled = model.predict(Xtest)
+
+    # Berechnung der Fehlermaße mit skalierten Werten
+    #Ytest_scaled = scaler.transform(Ytest.reshape(-1, 1))  # Skaliere Ytest
+    mae = round(mean_absolute_error(Ytest_scaled, test_predictions_scaled), 2)
+    mse = round(mean_squared_error(Ytest_scaled, test_predictions_scaled), 2)
     rmse = round(np.sqrt(mse), 2)
+
+
+    # Normalisierung der Metriken
+    max_mae = np.max( Ytest_scaled) - np.min( Ytest_scaled)
+    max_mse = (np.max(Ytest_scaled) - np.min( Ytest_scaled)) ** 2
+    max_rmse = np.sqrt(max_mse)
+
+    normalized_mae = mae / max_mae if max_mae!= 0 else 0
+    normalized_mse = mse / max_mse if max_mse!= 0 else 0
+    normalized_rmse = rmse / max_rmse if max_rmse!= 0 else 0
 
     # Erstellen der Grafik
     fig = go.Figure()
@@ -123,10 +134,10 @@ def get_lstm_predictions(flight_Abflug, flight_Ankunft):
     fig.update_layout(template="plotly_dark", height=600)
     fig.update_xaxes(title="Jahr")
     fig.update_yaxes(title="Preis ($)")
-    fig.update_layout(title="LSTM-Prognose für die Strecke: {} & {}".format(flight_Abflug, flight_Ankunft))
+    fig.update_layout( title=f"LSTM für die Strecke: {flight_Abflug} & {flight_Ankunft}")
 
     # Manuelles Hinzufügen der Metriken in die Legende
-    metrics_table = f"LSTM<b>Metriken</b><br>MSE: {mse:.2f}<br>MAE: {mae:.2f}<br>RMSE: {rmse:.2f}"
+    metrics_table = f"<b>Metriken</b><br>MSE: {normalized_mse:.2f}<br>MAE: {normalized_mae:.2f}<br>RMSE: {normalized_rmse:.2f}"
     fig.add_trace(go.Scatter(
         x=[None], y=[None],
         mode='markers',
