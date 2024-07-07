@@ -61,7 +61,7 @@ def create_figure(route_df, forecast_df, metrics, flight_Abflug, flight_Ankunft)
     fig.add_trace(go.Scatter(x=forecast_df.index, y=forecast_df['Lower CI'], mode='lines', line=dict(color='grey'), showlegend=False))
     fig.add_trace(go.Scatter(x=forecast_df.index, y=forecast_df['Upper CI'], mode='lines', line=dict(color='grey'), fill='tonexty', showlegend=False))
 
-    metrics_table = f"<b>Metriken</b><br>MSE: {metrics['mse']:.2f}<br>MAE: {metrics['mae']:.2f}<br>RMSE: {metrics['rmse']:.2f}"
+    metrics_table = f"<b>Metriken</b><br>Normalized MSE: {metrics['normalized_mse']:.2f}<br>Normalized MAE: {metrics['normalized_mae']:.2f}<br>Normalized RMSE: {metrics['normalized_rmse']:.2f}"
     fig.add_trace(go.Scatter(x=[None], y=[None], mode='markers', marker=dict(size=10, color='rgba(0,0,0,0)'), showlegend=True, name=metrics_table, hoverinfo='none'))
     fig.update_layout(title=f"SARIMA-Prognose für die Strecke: {flight_Abflug} & {flight_Ankunft}", xaxis_title='Jahr', yaxis_title='Preis ($)', template='plotly_dark', legend=dict(x=1, y=1, traceorder='normal', font=dict(size=12, color="white")), margin=dict(r=200))
     return fig
@@ -83,12 +83,24 @@ def update_graph(flight_Abflug, flight_Ankunft):
         results = model.fit()
         forecast = results.get_forecast(steps=12)
         forecast_df = pd.DataFrame({'Forecast': forecast.predicted_mean, 'Lower CI': forecast.conf_int().iloc[:, 0], 'Upper CI': forecast.conf_int().iloc[:, 1]}, index=pd.date_range(start=route_df.index[-1], periods=13, freq='MS')[1:])
+        
         mse = mean_squared_error(route_df['Real'], results.fittedvalues)
         mae = mean_absolute_error(route_df['Real'], results.fittedvalues)
         rmse = np.sqrt(mse)
-        metrics = {'mse': mse, 'mae': mae, 'rmse': rmse}
+
+        # Normalisierung der Metriken
+        max_value = np.max(route_df['Real']) - np.min(route_df['Real'])
+        max_mse = max_value ** 2
+        max_rmse = np.sqrt(max_mse)
+
+        normalized_mae = mae / max_value if max_value != 0 else 0
+        normalized_mse = mse / max_mse if max_mse != 0 else 0
+        normalized_rmse = rmse / max_rmse if max_rmse != 0 else 0
+
+        metrics = {'normalized_mse': normalized_mse, 'normalized_mae': normalized_mae, 'normalized_rmse': normalized_rmse}
+
         fig = create_figure(route_df, forecast_df, metrics, flight_Abflug, flight_Ankunft)
-        fig.update_layout( height=600) #geändert !!
+        fig.update_layout(height=600) #geändert !!
         return fig, ""
     except Exception as e:
         error_message = f"Fehler bei der Prognose für die Strecke {flight_Abflug} nach {flight_Ankunft}: {str(e)}"
@@ -101,13 +113,10 @@ def update_lstm_graph(flight_Abflug, flight_Ankunft):
     fig = get_lstm_predictions(flight_Abflug, flight_Ankunft)
     return fig
 
-
 @callback(Output('LineareRegression', 'figure'), [Input('Port3', 'value'), Input('Port4', 'value')])
 def update_LineareRegression(flight_Abflug, flight_Ankunft):
     fig = LineareRegression(flight_Abflug, flight_Ankunft)
     return fig
-
-
 
 @callback(Output('All-Method-Graph', 'figure'), [Input('Port3', 'value'), Input('Port4', 'value')])
 def update_all_method_graph(flight_Abflug, flight_Ankunft):
@@ -117,50 +126,45 @@ def update_all_method_graph(flight_Abflug, flight_Ankunft):
         # SARIMA Prognose
         sarima_fig = update_graph(flight_Abflug, flight_Ankunft)[0]
         for trace in sarima_fig['data']:
-            fig.add_trace(trace)
-            fig.add_annotation(
-            xref="paper", yref="paper",
-            x=0.99, y=0.15,
-            text="SARIMA",  # Hier den gewünschten Text einfügen
-            showarrow=False,
-            font=dict(size=16, color="orange"),  # Hier können Sie Schriftgröße und Farbe anpassen
-            bgcolor="rgba(0, 0, 0, 0)"  # Transparenter Hintergrund
-            )
-
-                
+            if trace['name'] == 'Prognose':  # Übernehmen Sie nur die Prognosekurve
+                fig.add_trace(trace)
+                fig.add_annotation(
+                    xref="paper", yref="paper",
+                    x=0.99, y=0.15,
+                    text="SARIMA",
+                    showarrow=False,
+                    font=dict(size=16, color="orange"),
+                    bgcolor="rgba(0, 0, 0, 0)"
+                )
 
         # LSTM Prognose
         lstm_fig = update_lstm_graph(flight_Abflug, flight_Ankunft)
         for trace in lstm_fig['data']:
             fig.add_trace(trace)
             fig.add_annotation(
-            xref="paper", yref="paper",
-            x=0.99, y=0.05,
-            text="LSTM",  # Hier den gewünschten Text einfügen
-            showarrow=False,
-            font=dict(size=16, color="yellow"),  # Hier können Sie Schriftgröße und Farbe anpassen
-            bgcolor="rgba(0, 0, 0, 0)"  # Transparenter Hintergrund
+                xref="paper", yref="paper",
+                x=0.99, y=0.05,
+                text="LSTM",
+                showarrow=False,
+                font=dict(size=16, color="yellow"),
+                bgcolor="rgba(0, 0, 0, 0)"
             )
-
 
         # Lineare Regression Prognose
         lr_fig = update_LineareRegression(flight_Abflug, flight_Ankunft)
         for trace in lr_fig['data']:
             fig.add_trace(trace)
             fig.add_annotation(
-            xref="paper", yref="paper",
-            x=0.99, y=0.10,
-            text="Lineare Regression",  # Hier den gewünschten Text einfügen
-            showarrow=False,
-            font=dict(size=16, color="red"),  # Hier können Sie Schriftgröße und Farbe anpassen
-            bgcolor="rgba(0, 0, 0, 0)"  # Transparenter Hintergrund
+                xref="paper", yref="paper",
+                x=0.99, y=0.10,
+                text="Lineare Regression",
+                showarrow=False,
+                font=dict(size=16, color="red"),
+                bgcolor="rgba(0, 0, 0, 0)"
             )
 
-
-
-        fig.update_layout(title=f'Vergleich der Prognosemethoden für {flight_Abflug}-{flight_Ankunft}', xaxis_title='Datum', yaxis_title='Preis ($)', template='plotly_dark', height=600, showlegend=False) #geändert !!
+        fig.update_layout(title=f'Vergleich der Prognosemethoden für {flight_Abflug}-{flight_Ankunft}', xaxis_title='Datum', yaxis_title='Preis ($)', template='plotly_dark', height=600, showlegend=False)
         fig.update_xaxes(title="Jahr", range=['2022-01-01', '2025-05-01'])
-        
 
         return fig
 
@@ -168,13 +172,6 @@ def update_all_method_graph(flight_Abflug, flight_Ankunft):
         fig = go.Figure()
         fig.update_layout(title='Fehler bei der Prognose', xaxis_title='Datum', yaxis_title='Preis ($)', template='plotly_dark')
         return fig
-
-
-
-
-
-
-
 
 
 
