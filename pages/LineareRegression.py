@@ -130,5 +130,7 @@ def LineareRegression(flight_Abflug, flight_Ankunft):
 
     # Festlegen der Plotvorlage für das Plotly-Diagramm
     pio.templates.default = "plotly_dark"
-
-    return fig, normalized_mae, normalized_mse, normalized_rmse
+    print("SLR prediction")
+    print(y_pred)
+    
+    return fig, normalized_mae, normalized_mse, normalized_rmse, y_pred

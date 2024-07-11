@@ -95,7 +95,8 @@ def get_lstm_predictions(flight_Abflug, flight_Ankunft, seed=45):
         predictions.append(prediction[0])
         last_sequence = np.append(last_sequence[1:], prediction[0])
     predictions = scaler.inverse_transform(predictions)
-
+    prediction = predictions.flatten()
+    
     # Berechne die tatsächlichen Testwerte
     Xtest, Ytest = [], []
     for i in range(training_data_length, len(scaled_data)):
@@ -166,13 +167,9 @@ def get_lstm_predictions(flight_Abflug, flight_Ankunft, seed=45):
             borderwidth=0,
         )
     )
+    print(predictions)
 
-    print("LSTM FUNKTION METRIK")
-    print(rounded_mae)
-    print(rounded_mse)
-    print(rounded_rmse)
-
-    return fig, rounded_mae, rounded_mse, rounded_rmse
+    return fig, rounded_mae, rounded_mse, rounded_rmse, predictions
 
 # Hauptprogrammablauf
 if __name__ == "__main__":
