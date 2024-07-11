@@ -14,52 +14,47 @@ from datetime import date
 import random
 import tensorflow as tf
 import pytz
-from dash import Output
+#from dash import Output
 
-app = Dash(__name__)
+
+# Initialisiere die Dash-Anwendung mit dem aktuellen Modulnamen
+app = Dash(__name__)  
 
 # Diese Funktion fügt zyklische Merkmale zu einem DataFrame hinzu.
-    # Sie transformiert den Monat in zwei neue Features: sin und cos,
-    # um die zyklische Natur der Monate zu repräsentieren.
-    # Diese Transformationen erlauben es, den periodischen Charakter der Daten beizubehalten.
-    # Berechnet den Sinus des Monats, um die zyklische Natur der Daten zu erfassen.
-    # Die Formel (2 * π * Monat / 12) normalisiert den Monatswert auf den Bereich [0, 2π],
-    # da ein kompletter Zyklus (ein Jahr) 12 Monate hat.
+# Sie transformiert den Monat in zwei neue Features: sin und cos,
+# um die zyklische Natur der Monate zu repräsentieren.
 def add_cyclic_features(df):
-    df['Month_sin'] = np.sin(2 * np.pi * df['Month'] / 12)
-    # Berechnet den Kosinus des Monats, um die zyklische Natur der Daten zu erfassen.
-    # Dies ergänzt das Sinus-Feature und hilft, die Periodizität der Monate zu modellieren.
-    df['Month_cos'] = np.cos(2 * np.pi * df['Month'] / 12)
+    df['Month_sin'] = np.sin(2 * np.pi * df['Month'] / 12)  # Sinus des Monats
+    df['Month_cos'] = np.cos(2 * np.pi * df['Month'] / 12)  # Kosinus des Monats
     return df
 
 
-def get_lstm_predictions(flight_Abflug, flight_Ankunft):
-    # Setzen vom Seed
-    seed = 45
+def get_lstm_predictions(flight_Abflug, flight_Ankunft, seed=45):
+    # Setze den Seed für die Reproduzierbarkeit der Ergebnisse
     np.random.seed(seed)
     tf.random.set_seed(seed)
 
-    # Laden und Filtern der Daten
+    # Lade und filtere die Daten aus der CSV-Datei
     df = pd.read_csv("AUS_Fares_March2024.csv", sep=',')
     df = df[["Year", "Month", "YearMonth", "Port1", "Port2", "Route", "$Real"]]
     df = df[(df["Port1"] == flight_Abflug) & (df["Port2"] == flight_Ankunft)]
     df = df.reset_index(drop=True)
 
-    # Konvertiere YearMonth in Datetime und sortiere die Daten nach Datum
+    # Konvertiere YearMonth in DateTime und sortiere nach Datum
     df['Date'] = pd.to_datetime(df['YearMonth'], format='%Y%m')
     df = df.sort_values(by='Date')
 
-    # Zyklische Features hinzufügen (Funktion muss definiert sein)
+    # Füge zyklische Features hinzu
     df = add_cyclic_features(df)
 
-    # Initialisierung des MinMaxScalers
+    # Initialisiere den MinMaxScaler für die Datennormalisierung
     scaler = MinMaxScaler(feature_range=(0, 1))
     Real_Value = df["$Real"].values.reshape(-1, 1)
     scaled_data = scaler.fit_transform(Real_Value)
     training_data_length = math.ceil(len(Real_Value) * 0.8)
     lookback_window = 12
 
-    # Erstellung der Trainingsdaten
+    # Erstelle die Trainingsdaten für das LSTM-Modell
     Xtrain, Ytrain = [], []
     for i in range(lookback_window, training_data_length):
         Xtrain.append(scaled_data[i - lookback_window:i, 0])
@@ -67,20 +62,29 @@ def get_lstm_predictions(flight_Abflug, flight_Ankunft):
     Xtrain, Ytrain = np.array(Xtrain), np.array(Ytrain)
     Xtrain = np.reshape(Xtrain, (Xtrain.shape[0], Xtrain.shape[1], 1))
 
-    # Modell erstellen und trainieren
-    model = Sequential()
-    neurons = 128
+    # Erstelle das LSTM-Modell und trainiere es
+    model = Sequential()  # Initialisiere ein sequentielles Modell
+    neurons = 128  # Anzahl der Neuronen in den LSTM-Schichten
+    # Füge die erste LSTM-Schicht hinzu mit Rückgabe einer Sequenz und definierter Eingabeform
     model.add(LSTM(neurons, return_sequences=True, input_shape=(Xtrain.shape[1], 1)))
-    model.add(Dropout(0.2))
+     # Dropout-Schicht zur Regularisierung der vorherigen LSTM-Schicht
+    model.add(Dropout(0.2)) 
+    # Füge eine weitere LSTM-Schicht hinzu, die eine Sequenz zurückgibt
     model.add(LSTM(neurons, return_sequences=True))
-    model.add(Dropout(0.2))
+     # Dropout-Schicht zur Regularisierung
+    model.add(Dropout(0.2)) 
+    # Füge die letzte LSTM-Schicht hinzu, die nur die letzte Ausgabe zurückgibt
     model.add(LSTM(neurons, return_sequences=False))
-    model.add(Dense(25, activation='relu'))
-    model.add(Dense(1, activation='linear'))
-    model.compile(optimizer="adam", loss="mse")
-    model.fit(Xtrain, Ytrain, epochs=200, batch_size=35)
+    # Dense-Schicht mit 25 Neuronen und ReLU-Aktivierungsfunktion
+    model.add(Dense(25, activation='relu')) 
+    # Dense-Schicht für eine lineare Ausgabe
+    model.add(Dense(1, activation='linear')) 
+    # Kompilierung mit Adam-Optimizer und MSE-Verlustfunktion
+    model.compile(optimizer="adam", loss="mse") 
+    # Training des Modells mit den Trainingsdaten
+    model.fit(Xtrain, Ytrain, epochs=200, batch_size=35) 
 
-    # Vorhersagen erstellen
+    # Generiere Vorhersagen
     last_sequence = scaled_data[-lookback_window:]
     predictions = []
     data_points = 12
@@ -92,7 +96,7 @@ def get_lstm_predictions(flight_Abflug, flight_Ankunft):
         last_sequence = np.append(last_sequence[1:], prediction[0])
     predictions = scaler.inverse_transform(predictions)
 
-    # Berechnung der tatsächlichen Testwerte
+    # Berechne die tatsächlichen Testwerte
     Xtest, Ytest = [], []
     for i in range(training_data_length, len(scaled_data)):
         Xtest.append(scaled_data[i - lookback_window:i, 0])
@@ -104,40 +108,45 @@ def get_lstm_predictions(flight_Abflug, flight_Ankunft):
     Ytest_scaled = Ytest
     test_predictions_scaled = model.predict(Xtest)
 
-    # Berechnung der Fehlermaße mit skalierten Werten
-    #Ytest_scaled = scaler.transform(Ytest.reshape(-1, 1))  # Skaliere Ytest
+    # Berechne die Fehlermaße mit skalierten Werten
     mae = round(mean_absolute_error(Ytest_scaled, test_predictions_scaled), 2)
     mse = round(mean_squared_error(Ytest_scaled, test_predictions_scaled), 2)
     rmse = round(np.sqrt(mse), 2)
 
-
-    # Normalisierung der Metriken
-    max_mae = np.max( Ytest_scaled) - np.min( Ytest_scaled)
-    max_mse = (np.max(Ytest_scaled) - np.min( Ytest_scaled)) ** 2
+    # Normalisiere die Metriken
+    max_mae = np.max(Ytest_scaled) - np.min(Ytest_scaled)
+    max_mse = (np.max(Ytest_scaled) - np.min(Ytest_scaled)) ** 2
     max_rmse = np.sqrt(max_mse)
 
-    normalized_mae = mae / max_mae if max_mae!= 0 else 0
-    normalized_mse = mse / max_mse if max_mse!= 0 else 0
-    normalized_rmse = rmse / max_rmse if max_rmse!= 0 else 0
+    normalized_mae_lstm = mae / max_mae if max_mae != 0 else 0
+    normalized_mse_lstm = mse / max_mse if max_mse != 0 else 0
+    normalized_rmse_lstm = rmse / max_rmse if max_rmse != 0 else 0
 
-    # Erstellen der Grafik
+    # Erstelle das Diagramm für die Vorhersagen
     fig = go.Figure()
     x_values = df['Date']
     y_values = df["$Real"]
     fig.add_trace(go.Scatter(x=x_values, y=y_values, mode="lines", name="Historische Daten"))
-    fig.add_trace(go.Scatter(x=pd.date_range(start=x_values.iloc[-1], periods=data_points + 1, freq="M")[1:], 
-                             y=predictions.flatten(), mode='lines+markers', name="Vorhersagen", line=dict(color='yellow')))
-    fig.add_trace(go.Scatter(x=[x_values.iloc[-1], pd.date_range(start=x_values.iloc[-1], periods=data_points + 1, freq="M")[1]],
-                             y=[y_values.iloc[-1], predictions.flatten()[0]], mode="lines", showlegend=False, line=dict(color='yellow', dash='dash')))
+    fig.add_trace(go.Scatter(x=pd.date_range(start=x_values.iloc[-1], periods=data_points + 1, freq="ME")[1:],
+                             y=predictions.flatten(), mode='lines+markers', name="Prognose", line=dict(color='yellow')))
+    fig.add_trace(go.Scatter(x=[x_values.iloc[-1], pd.date_range(start=x_values.iloc[-1], periods=data_points + 1, freq="ME")[1]],
+                             y=[y_values.iloc[-1], predictions.flatten()[0]], mode="lines", showlegend=False,
+                             line=dict(color='yellow', dash='dash')))
     yearly_avg = df.groupby(df['Date'].dt.year)['$Real'].mean().reset_index()
-    fig.add_trace(go.Scatter(x=yearly_avg['Date'], y=yearly_avg['$Real'], mode="lines+markers", name="Jährl. Durchschnittspreis", line=dict(color='orange')))
+    fig.add_trace(go.Scatter(x=yearly_avg['Date'], y=yearly_avg['$Real'], mode="lines+markers",
+                             name="Jährl. Durchschnittspreis", line=dict(color='orange')))
     fig.update_layout(template="plotly_dark", height=600)
     fig.update_xaxes(title="Jahr")
     fig.update_yaxes(title="Preis ($)")
-    fig.update_layout( title=f"LSTM für die Strecke: {flight_Abflug} & {flight_Ankunft}")
+    fig.update_layout(title=f"LSTM für die Strecke: {flight_Abflug} & {flight_Ankunft}")
 
-    # Manuelles Hinzufügen der Metriken in die Legende
-    metrics_table = f"<b>Metriken</b><br>MSE: {normalized_mse:.2f}<br>MAE: {normalized_mae:.2f}<br>RMSE: {normalized_rmse:.2f}"
+    rounded_mae = round(normalized_mae_lstm, 2)
+    rounded_mse = round(normalized_mse_lstm, 2)
+    rounded_rmse = round(normalized_rmse_lstm, 2)
+
+
+    # Füge die Metriken als Annotation zum Diagramm hinzu
+    metrics_table = f"<b>Metriken</b><br>MSE: {rounded_mse}<br>MAE: {rounded_mae}<br>RMSE: {rounded_rmse}"
     fig.add_trace(go.Scatter(
         x=[None], y=[None],
         mode='markers',
@@ -155,26 +164,19 @@ def get_lstm_predictions(flight_Abflug, flight_Ankunft):
             bgcolor="rgba(0,0,0,0)",
             bordercolor="rgba(0,0,0,0)",
             borderwidth=0,
-            
         )
     )
 
-    return fig
+    print("LSTM FUNKTION METRIK")
+    print(rounded_mae)
+    print(rounded_mse)
+    print(rounded_rmse)
 
-# Beispielaufruf der Funktion
-#flight_Abflug = "Cairns"
-#flight_Ankunft = "Melbourne"
-#predictions, rmse, mae = get_lstm_predictions(flight_Abflug, flight_Ankunft)
-#print(f"Vorhersagen: {predictions}")
+    return fig, rounded_mae, rounded_mse, rounded_rmse
 
-
-
-
-
+# Hauptprogrammablauf
 if __name__ == "__main__":
-    app.run(debug = True)
-
-
+    app.run(debug=True)  # Starte die Dash-Anwendung im Debug-Modus
 
 
   
