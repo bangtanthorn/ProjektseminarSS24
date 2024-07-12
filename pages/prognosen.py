@@ -72,8 +72,8 @@ layout = html.Div([
     dash_table.DataTable(
             id='table_BestPrognose',
             columns=[
-                {'name': 'Monat', 'id': 'Monat'},
-                {'name': 'Prognosewert', 'id': 'Prognosewert'}
+                {'name': 'Monat,Jahr', 'id': 'Monat,Jahr'},
+                {'name': 'Prognostizierte Werte', 'id': 'Prognostizierte Werte in $'}
             ],
             data=[],
             style_cell={
@@ -285,9 +285,13 @@ def update_all_method_graph(flight_Abflug, flight_Ankunft):
                         name='Verbindungslinie'
                     ))
 
-        # # LSTM Prognose
+        # LSTM Prognose
+        # LSTM Prognose
         lstm_fig = update_lstm_graph(flight_Abflug, flight_Ankunft)
         for trace in lstm_fig['data']:
+            if trace['name'] == 'Prognose':  # Nur die Prognosekurve
+                # Hier das Datum auf den Anfang des Monats setzen
+                trace['x'] = [date.replace(day=1) for date in trace['x']]
             fig.add_trace(trace)
             fig.add_annotation(
                 xref="paper", yref="paper",
@@ -297,6 +301,20 @@ def update_all_method_graph(flight_Abflug, flight_Ankunft):
                 font=dict(size=16, color="yellow"),  # Hier können Sie Schriftgröße und Farbe anpassen
                 bgcolor="rgba(0, 0, 0, 0)"  # Transparenter Hintergrund
             )
+
+        # Verbindungslinie für LSTM hinzufügen
+        if lstm_fig['data']:
+            last_historical_date = lstm_fig['data'][0]['x'][-1].replace(day=1)
+            first_forecast_date = lstm_fig['data'][1]['x'][0]
+            fig.add_trace(go.Scatter(
+                x=[last_historical_date, first_forecast_date],
+                y=[lstm_fig['data'][0]['y'][-1], lstm_fig['data'][1]['y'][0]],
+                mode='lines',
+                line=dict(color='yellow', dash='dash'),
+                showlegend=False,
+                name='Verbindungslinie'
+            ))
+
 
         # Lineare Regression Prognose
         lr_fig = update_LineareRegression(flight_Abflug, flight_Ankunft)
@@ -389,15 +407,15 @@ def update_table_Metriken(flight_Abflug, flight_Ankunft, metrics, forecast):
         print(forecast[:5])
 
         if best_method == 'Long-Short-Term-Memory':
-            predictions = lstm_predictions[:5]
+            predictions = lstm_predictions[:7]
         elif best_method == "Saisionale Lineare Regression":
-            predictions = lr_predictions[:5]
+            predictions = lr_predictions[:7]
         elif best_method == 'SARIMA':
-            predictions = forecast[:5]
+            predictions = forecast[:7]
         
 
         for month, forecast in zip(forecast_months, predictions):
-            table_BestPrognose_data.append({'Monat': month, 'Prognosewert': round(forecast, 2)})  # forecast is a single-item array
+            table_BestPrognose_data.append({'Monat,Jahr': month, 'Prognostizierte Werte in $': round(forecast, 2)})  # forecast is a single-item array
 
         return metrics_data, best_method, table_BestPrognose_data
 

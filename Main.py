@@ -63,7 +63,7 @@ topbar = dbc.Nav(
                     {"label": "Sunshine Coast", "value": "Sunshine Coast"},
                     {"label": "Sydney", "value": "Sydney"}
                 ],
-                value="Adelaide",  # Standardwert für den Dropdown
+                value="Canberra",  # Standardwert für den Dropdown
                 id="Port3",  # ID des Dropdowns für die Abflugorte
                 style={'width': '100%',
                        "margin-left": "-10px",
@@ -112,7 +112,7 @@ topbar = dbc.Nav(
                     {"label": "Sunshine Coast", "value": "Sunshine Coast"},
                     {"label": "Sydney", "value": "Sydney"}
                 ],
-                value="Brisbane",  # Standardwert für den Dropdown
+                value="Melbourne",  # Standardwert für den Dropdown
                 id="Port4",  # ID des Dropdowns für die Ankunftsorte
                 style={'width': '100%',
                        "margin-left": "-15px",

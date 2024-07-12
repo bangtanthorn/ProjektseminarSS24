@@ -65,24 +65,15 @@ def get_lstm_predictions(flight_Abflug, flight_Ankunft, seed=45):
     # Erstelle das LSTM-Modell und trainiere es
     model = Sequential()  # Initialisiere ein sequentielles Modell
     neurons = 128  # Anzahl der Neuronen in den LSTM-Schichten
-    # Füge die erste LSTM-Schicht hinzu mit Rückgabe einer Sequenz und definierter Eingabeform
     model.add(LSTM(neurons, return_sequences=True, input_shape=(Xtrain.shape[1], 1)))
-     # Dropout-Schicht zur Regularisierung der vorherigen LSTM-Schicht
-    model.add(Dropout(0.2)) 
-    # Füge eine weitere LSTM-Schicht hinzu, die eine Sequenz zurückgibt
+    model.add(Dropout(0.2))
     model.add(LSTM(neurons, return_sequences=True))
-     # Dropout-Schicht zur Regularisierung
-    model.add(Dropout(0.2)) 
-    # Füge die letzte LSTM-Schicht hinzu, die nur die letzte Ausgabe zurückgibt
+    model.add(Dropout(0.2))
     model.add(LSTM(neurons, return_sequences=False))
-    # Dense-Schicht mit 25 Neuronen und ReLU-Aktivierungsfunktion
-    model.add(Dense(25, activation='relu')) 
-    # Dense-Schicht für eine lineare Ausgabe
-    model.add(Dense(1, activation='linear')) 
-    # Kompilierung mit Adam-Optimizer und MSE-Verlustfunktion
-    model.compile(optimizer="adam", loss="mse") 
-    # Training des Modells mit den Trainingsdaten
-    model.fit(Xtrain, Ytrain, epochs=200, batch_size=35) 
+    model.add(Dense(25, activation='relu'))
+    model.add(Dense(1, activation='linear'))
+    model.compile(optimizer="adam", loss="mse")
+    model.fit(Xtrain, Ytrain, epochs=200, batch_size=35)
 
     # Generiere Vorhersagen
     last_sequence = scaled_data[-lookback_window:]
@@ -96,7 +87,7 @@ def get_lstm_predictions(flight_Abflug, flight_Ankunft, seed=45):
         last_sequence = np.append(last_sequence[1:], prediction[0])
     predictions = scaler.inverse_transform(predictions)
     prediction = predictions.flatten()
-    
+
     # Berechne die tatsächlichen Testwerte
     Xtest, Ytest = [], []
     for i in range(training_data_length, len(scaled_data)):
@@ -128,9 +119,9 @@ def get_lstm_predictions(flight_Abflug, flight_Ankunft, seed=45):
     x_values = df['Date']
     y_values = df["$Real"]
     fig.add_trace(go.Scatter(x=x_values, y=y_values, mode="lines", name="Historische Daten"))
-    fig.add_trace(go.Scatter(x=pd.date_range(start=x_values.iloc[-1], periods=data_points + 1, freq="ME")[1:],
+    fig.add_trace(go.Scatter(x=pd.date_range(start=x_values.iloc[-1], periods=data_points + 1, freq="MS")[1:],
                              y=predictions.flatten(), mode='lines+markers', name="Prognose", line=dict(color='yellow')))
-    fig.add_trace(go.Scatter(x=[x_values.iloc[-1], pd.date_range(start=x_values.iloc[-1], periods=data_points + 1, freq="ME")[1]],
+    fig.add_trace(go.Scatter(x=[x_values.iloc[-1], pd.date_range(start=x_values.iloc[-1], periods=data_points + 1, freq="MS")[1]],
                              y=[y_values.iloc[-1], predictions.flatten()[0]], mode="lines", showlegend=False,
                              line=dict(color='yellow', dash='dash')))
     yearly_avg = df.groupby(df['Date'].dt.year)['$Real'].mean().reset_index()
@@ -144,7 +135,6 @@ def get_lstm_predictions(flight_Abflug, flight_Ankunft, seed=45):
     rounded_mae = round(normalized_mae_lstm, 2)
     rounded_mse = round(normalized_mse_lstm, 2)
     rounded_rmse = round(normalized_rmse_lstm, 2)
-
 
     # Füge die Metriken als Annotation zum Diagramm hinzu
     metrics_table = f"<b>Metriken</b><br>MSE: {rounded_mse}<br>MAE: {rounded_mae}<br>RMSE: {rounded_rmse}"
