@@ -1,17 +1,12 @@
-#import csv
+
 import pandas as pd
 from dash import html, callback
 from dash import dcc
-from dash.dependencies import Input, Output, State
+from dash.dependencies import Input, Output
 import plotly.express as px
 import dash
-#import seaborn as sns
 import dash_bootstrap_components as dbc
 import plotly.graph_objs as go
-#from datetime import date
-#from datetime import datetime
-#import geosphere
-#from geopy.distance import geodesic
 from dash import dash_table
 
 
@@ -265,7 +260,14 @@ def update_time_series_chart(flight_Abflug, flight_Ankunft, start_month, start_y
 
     # Plot mit Plotly Express (Bar Chart) erstellen
     fig = px.bar(max_values, x="Year", y="$Real", template="plotly_dark",
-                 labels={"Year": "Jahr", "$Real": "Preis"}, color_discrete_sequence=["#ff0000"])
+             labels={"Year": "Jahr", "$Real": "Preis"}, color_discrete_sequence=["#ff0000"])
+    
+    # Anpassung der X-Achse um jedes Jahr anzuzeigen
+    fig.update_xaxes(tickvals=max_values["Year"], ticktext=max_values["Year"].astype(str))
+
+    # Anpassung der Y-Achse Tick Labels
+    fig.update_yaxes(tickformat=",.0f")
+
     
     return fig
 
@@ -388,13 +390,19 @@ def ZweiteStrecke(flight_Abflug, flight_Ankunft, start_month, start_year, end_mo
                 fillcolor='rgba(255, 165, 0, 0.3)', 
                 name='Durchschnittswert'
             ))
-
-    # Layout des Diagramms aktualisieren (Titel, Achsenbeschriftungen, Vorlage)
+    # Anpassung des Layouts
     fig.update_layout(
         title="Maximum und Minimumpreise für die Strecke: {} & {}".format(flight_Abflug, flight_Ankunft),
-        xaxis=dict(title="Jahr"),
         yaxis=dict(title="Preis"),
         template="plotly_dark"
+    )
+
+    # Wenn 'max_values' als lokale Variable definiert ist, dann die X-Achse anpassen
+    if 'max_values' in locals():
+        fig.update_xaxes(
+            title="Jahr",  # Titel für die X-Achse festlegen
+            tickvals=max_values.index,  # Wert für die Ticks auf der X-Achse (Jahre)
+            ticktext=max_values.index.astype(str)  # Text für die Ticks auf der X-Achse (als Zeichenketten)
     )
 
     return fig

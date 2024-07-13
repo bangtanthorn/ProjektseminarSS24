@@ -14,7 +14,7 @@ from datetime import date
 import random
 import tensorflow as tf
 import pytz
-#from dash import Output
+
 
 
 # Initialisiere die Dash-Anwendung mit dem aktuellen Modulnamen
