@@ -512,11 +512,6 @@ def update_table_Metriken(flight_Abflug, flight_Ankunft, metrics, forecast):
 
 
 
-
-
-
-
-
 # table_columns = [
 #     {'name': 'Metrik', 'id': 'Metrik'},
 #     {'name': 'Long-Short-Term-memory', 'id': 'LSTM'},
