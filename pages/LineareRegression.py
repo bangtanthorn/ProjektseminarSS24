@@ -1,4 +1,3 @@
-#import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 from sklearn.linear_model import LinearRegression
@@ -6,10 +5,6 @@ import datetime as dt
 from datetime import date, datetime
 import plotly.graph_objects as go
 import plotly.io as pio
-#from dash import Dash
-#import tensorflow as tf
-#from sklearn.model_selection import train_test_split
-#from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import mean_squared_error
 from sklearn.metrics import mean_absolute_error
 from sklearn.preprocessing import MinMaxScaler
@@ -83,10 +78,6 @@ def LineareRegression(flight_Abflug, flight_Ankunft):
     normalized_mse = mse / max_mse if max_mse != 0 else 0
     normalized_rmse = rmse / max_rmse if max_rmse != 0 else 0
 
-    # Ausgabe der normalisierten Metriken zur Überwachung der Modellgenauigkeit
-    print(normalized_mae)
-    print(normalized_mse)
-
     # Erstellen eines interaktiven Plotly-Diagramms für die Visualisierung der Vorhersagen und historischen Daten
     dates = [datetime.fromordinal(int(date_val)).date() for date_val in df['Date_ordinal'].values]
     dates_pred = [date.date() for date in next_dates]
@@ -130,7 +121,6 @@ def LineareRegression(flight_Abflug, flight_Ankunft):
 
     # Festlegen der Plotvorlage für das Plotly-Diagramm
     pio.templates.default = "plotly_dark"
-    print("SLR prediction")
-    print(y_pred)
+
     
     return fig, normalized_mae, normalized_mse, normalized_rmse, y_pred

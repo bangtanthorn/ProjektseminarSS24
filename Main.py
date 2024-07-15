@@ -4,8 +4,6 @@ import dash_bootstrap_components as dbc  # Importiere Dash-Bootstrap-Komponenten
 from dash import callback  # Importiere die Callback-Funktion von Dash
 import pandas as pd  # Importiere Pandas für die Datenverarbeitung
 from dash.dependencies import Input, Output, State  # Importiere notwendige Dash-Abhängigkeiten für die Callback-Funktionen
-#from dash import dash_table  # Importiere die Dash-Tabellenkomponente
-#from dash.dash_table.Format import Group  # Importiere Formatierungsgruppe für Dash-Tabellen
 
 # Erstelle eine Dash-App und aktiviere die Verwendung von Seiten (use_pages=True)
 app = dash.Dash(__name__, use_pages=True, suppress_callback_exceptions=True, external_stylesheets=[dbc.themes.DARKLY])

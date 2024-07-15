@@ -66,7 +66,6 @@ colors = ['red', 'blue', 'green', 'orange', 'purple', 'yellow']
 airport_colors = [random.choice(colors) for _ in range(len(df_airports))]
 
 # Layout der Seite definieren
-
 layout = html.Div([
     html.Div([
         html.P(""),
@@ -103,9 +102,11 @@ layout = html.Div([
     Input('Port3', 'value')
 )
 def set_destination_options(selected_origin):
+    # Filtere die Daten, um nur die Zeilen zu erhalten, deren Abflugort dem ausgewählten Abflugort entspricht.
     destinations = df_cleaned[df_cleaned['Origin'] == selected_origin]['Destination'].unique()
+    # Erstelle eine Liste von Dictionaries, die als Optionen für ein Dropdown-Menü verwendet werden können.
+    # Jedes Dictionary enthält ein Ziel als 'label' und 'value', aber nur, wenn das Ziel in den common_airports enthalten ist.
     return [{'label': dest, 'value': dest} for dest in destinations if dest in common_airports]
-
 
 
 
@@ -137,7 +138,7 @@ def update_graph_and_map(selected_origin, selected_destination, selected_year):
          # Überprüfen, ob die ausgewählten Werte gültig sind
         if not selected_origin or not selected_destination or not selected_year:
             raise ValueError("Einer der Auswahlwerte ist leer. Bitte überprüfen Sie die Auswahl.")
-   # Filtern der Daten nach den ausgewählten Werten
+        # Filtern der Daten nach den ausgewählten Werten
         filtered_data = df_cleaned[(df_cleaned['Origin'] == selected_origin) & 
                                    (df_cleaned['Destination'] == selected_destination) &
                                    (df_cleaned['Year'] == selected_year)]
@@ -145,7 +146,6 @@ def update_graph_and_map(selected_origin, selected_destination, selected_year):
         if filtered_data.empty:
             raise ValueError("Die gefilterten Daten sind leer. Überprüfen Sie die Datenquelle oder die Filterkriterien.")
         # Erstellen des Liniendiagramms für die monatlichen Preise
-        
         line_fig = px.line(filtered_data, x='Month', y='$Real', title=f'Monatliche Preise von {selected_origin} nach {selected_destination} in {selected_year}')
         line_fig.update_layout(template='plotly_dark', title='Monatliche Preise', yaxis_title='Preis', xaxis_title='Monat')
         line_fig.update_traces(name='Preis', hovertemplate='Monat: %{x}<br>Preis: %{y} €')
@@ -160,11 +160,11 @@ def update_graph_and_map(selected_origin, selected_destination, selected_year):
         heatmap_data = df_cleaned[(df_cleaned['Origin'] == selected_origin) & (df_cleaned['Destination'] == selected_destination)]
         heatmap_fig = px.density_heatmap(heatmap_data, x='Month', y='Year', z='$Real', marginal_x="histogram", marginal_y="histogram", title='Preisfluktuationen über Zeit')
         heatmap_fig.update_layout(template='plotly_dark', title='Preisfluktuationen', yaxis_title='Jahr', xaxis_title='Monat')
-         # Berechnung der Distanz zwischen den Flughäfen
+        # Berechnung der Distanz zwischen den Flughäfen
         origin_coords = df_airports[df_airports['Airport'] == selected_origin].iloc[0]
         destination_coords = df_airports[df_airports['Airport'] == selected_destination].iloc[0]
         distance_km = haversine(origin_coords['Longitude'], origin_coords['Latitude'], destination_coords['Longitude'], destination_coords['Latitude'])
-         # Erstellen der Flugroute auf der Karte
+        # Erstellen der Flugroute auf der Karte
         flight_path = go.Scattergeo(
             lon=[origin_coords['Longitude'], destination_coords['Longitude']],
             lat=[origin_coords['Latitude'], destination_coords['Latitude']],
@@ -194,7 +194,7 @@ def update_graph_and_map(selected_origin, selected_destination, selected_year):
             text=[selected_origin, selected_destination],
             name="Abflug und Ziel Flughafen"
         )
-# Erstellen der Karte mit der Flugroute und den Flughäfen
+        # Erstellen der Karte mit der Flugroute und den Flughäfen
         flight_route_map = go.Figure(data=[flight_path, airport_symbols, selected_airports])
         flight_route_map.update_layout(
     title=f"Flugroute von {selected_origin} nach {selected_destination}",
@@ -217,7 +217,7 @@ def update_graph_and_map(selected_origin, selected_destination, selected_year):
 
 
 )
-     # Erstellen der Karte mit der Flugroute und den Flughäfen
+        # Erstellen der Karte mit der Flugroute und den Flughäfen
         distance_text = f"Distanz von {selected_origin} nach {selected_destination}: {distance_km:.2f} km"
         
         stats_data = df_cleaned[(df_cleaned['Origin'] == selected_origin) & 
@@ -242,7 +242,7 @@ def update_graph_and_map(selected_origin, selected_destination, selected_year):
             )
         ], style={'width': '70%', 'margin': '0 auto'})
 
-          # Rückgabe der erstellten Diagramme und der berechneten Werte
+        # Rückgabe der erstellten Diagramme und der berechneten Werte
         return line_fig, bar_fig, heatmap_fig, flight_route_map, distance_text, summary_table
     
 

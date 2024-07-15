@@ -10,16 +10,6 @@ import plotly.graph_objs as go
 from dash import dash_table
 
 
-
-
-# Lade die CSV-Daten und filtere nach Flügen von Adelaide nach Brisbane im März 2024
-df = pd.read_csv("AUS_Fares_March2024.csv", sep=',')
-df = df[["Year", "Month", "YearMonth", "Port1", "Port2", "Route", "$Real"]]
-df = df[(df["Port1"] == "Adelaide") & (df["Port2"] == "Brisbane")]
-df = df.reset_index(drop=True)
-
-
-
 dash.register_page(__name__, path='/', name="Fluganalyse1")
 
 # Definiere das externe CSS-Stylesheet für das Bootstrap-Styling
@@ -120,7 +110,8 @@ layout = html.Div([
                                 style={'width': '28%', "color": "black", 'font-family': 'Constantia', "font-size": "20px", "margin-left": "215px", "margin-top": "-37px"}
                             ),
                         ], style={"margin-left": "-200px"})
-                    ], style={}),
+                    ], 
+                    ),
                 ])
             ], style={'display': 'inline-block', "text-align": "justify"}),
         ]),

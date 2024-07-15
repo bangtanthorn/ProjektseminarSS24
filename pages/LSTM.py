@@ -127,11 +127,15 @@ def get_lstm_predictions(flight_Abflug, flight_Ankunft, seed=45):
     yearly_avg = df.groupby(df['Date'].dt.year)['$Real'].mean().reset_index()
     fig.add_trace(go.Scatter(x=yearly_avg['Date'], y=yearly_avg['$Real'], mode="lines+markers",
                              name="Jährl. Durchschnittspreis", line=dict(color='orange')))
+    # Aktualisiere das Layout des Diagramms mit einem dunklen Thema und einer Höhe von 600 Pixeln
     fig.update_layout(template="plotly_dark", height=600)
+    # Setze den Titel der x-Achse auf "Jahr"
     fig.update_xaxes(title="Jahr")
+    # Setze den Titel der y-Achse auf "Preis ($)"
     fig.update_yaxes(title="Preis ($)")
+    # Füge einen Titel zum Diagramm hinzu, der die Flugstrecke beschreibt
     fig.update_layout(title=f"LSTM für die Strecke: {flight_Abflug} & {flight_Ankunft}")
-
+    # Runde die Fehlermaße auf zwei Dezimalstellen
     rounded_mae = round(normalized_mae_lstm, 2)
     rounded_mse = round(normalized_mse_lstm, 2)
     rounded_rmse = round(normalized_rmse_lstm, 2)
@@ -157,13 +161,12 @@ def get_lstm_predictions(flight_Abflug, flight_Ankunft, seed=45):
             borderwidth=0,
         )
     )
-    print(predictions)
 
     return fig, rounded_mae, rounded_mse, rounded_rmse, predictions
 
-# Hauptprogrammablauf
+
 if __name__ == "__main__":
-    app.run(debug=True)  # Starte die Dash-Anwendung im Debug-Modus
+    app.run(debug=True) 
 
 
   

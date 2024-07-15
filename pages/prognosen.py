@@ -134,7 +134,7 @@ layout = html.Div([
 
 
 
-## Daten laden
+# Daten laden
 # Datei mit Flugpreisdaten wird eingelesen
 csv_file_path_fares = 'AUS_Fares_March2024.csv'
 df = pd.read_csv(csv_file_path_fares)
@@ -183,15 +183,24 @@ def optimize_sarima(endog, seasonal_periods):
     return best_params
 
 def prepare_data(df, flight_Abflug, flight_Ankunft):
+    # Filtere die Daten für die spezifische Flugroute heraus
     route_df = df[(df['Port1'] == flight_Abflug) & (df['Port2'] == flight_Ankunft)].copy()
+    # Überprüfe, ob der resultierende DataFrame leer ist
     if route_df.empty:
-        #raise ValueError(f"No data found for the route from {flight_Abflug} to {flight_Ankunft}")
-        raise ValueError(f"Warten sie bis das Dashboard neu geladen hat für die Strecke {flight_Abflug} nach {flight_Ankunft}")
+        # Wenn der DataFrame leer ist, werfe einen Fehler mit einer spezifischen Nachricht
+        raise ValueError(f"Warten Sie, bis das Dashboard neu geladen hat für die Strecke {flight_Abflug} nach {flight_Ankunft}")
+    # Setze die 'YearMonth' Spalte als Index
     route_df.set_index('YearMonth', inplace=True)
+    # Entferne doppelte Indizes, falls vorhanden, und behalte nur das erste Vorkommen
     route_df = route_df[~route_df.index.duplicated(keep='first')]
+    # Überprüfe, ob die Spalte 'Real' im DataFrame vorhanden ist
     if 'Real' not in route_df.columns:
+        # Wenn die Spalte 'Real' fehlt, werfe einen Fehler mit einer spezifischen Nachricht
         raise ValueError(f"The 'Real' column is missing in the data for the route from {flight_Abflug} to {flight_Ankunft}")
+    # Setze die Frequenz des DataFrames auf monatlich und fülle fehlende Werte durch Interpolation
     route_df = route_df.asfreq('MS').interpolate()
+    
+    # Rückgabe des vorbereiteten DataFrames
     return route_df
 
 
@@ -282,15 +291,23 @@ def update_graph(flight_Abflug, flight_Ankunft):
         max_value = np.max(route_df['Real']) - np.min(route_df['Real'])
         max_mse = max_value ** 2
         max_rmse = np.sqrt(max_mse)
-
+        # Normalisiere den Mean Absolute Error (MAE) durch Division mit dem maximalen Wert.
+        # Falls der maximale Wert 0 ist, setze den normalisierten MAE auf 0, um Division durch 0 zu vermeiden.
         normalized_mae = mae / max_value if max_value != 0 else 0
+
+        # Normalisiere den Mean Squared Error (MSE) durch Division mit dem maximalen MSE.
+        # Falls der maximale MSE 0 ist, setze den normalisierten MSE auf 0, um Division durch 0 zu vermeiden.
         normalized_mse = mse / max_mse if max_mse != 0 else 0
+
+        # Normalisiere den Root Mean Squared Error (RMSE) durch Division mit dem maximalen RMSE.
+        # Falls der maximale RMSE 0 ist, setze den normalisierten RMSE auf 0, um Division durch 0 zu vermeiden.
         normalized_rmse = rmse / max_rmse if max_rmse != 0 else 0
 
+        # Erstelle ein Dictionary, das die normalisierten Metriken enthält.
         metrics = {
-            'normalized_mse': normalized_mse,
-            'normalized_mae': normalized_mae,
-            'normalized_rmse': normalized_rmse
+            'normalized_mse': normalized_mse,   # Normalisierter MSE
+            'normalized_mae': normalized_mae,   # Normalisierter MAE
+            'normalized_rmse': normalized_rmse  # Normalisierter RMSE
         }
 
         # Erstellung der Plotly-Figur mit den Prognose- und Metrikendaten
@@ -403,7 +420,7 @@ def update_all_method_graph(flight_Abflug, flight_Ankunft):
             fig.add_annotation(
                 xref="paper", yref="paper",
                 x=0.99, y=0.10,
-                text="Lineare Regression",
+                text="Saisonale lineare Regression",
                 showarrow=False,
                 font=dict(size=16, color="red"),
                 bgcolor="rgba(0, 0, 0, 0)"
@@ -431,8 +448,6 @@ def update_all_method_graph(flight_Abflug, flight_Ankunft):
         return fig
 
 
-
-# Callback für die Tabelle (Metriken)
 @callback(
     Output(component_id='table_Metriken', component_property='data'),
     Output("BestMethod", "children"),
@@ -503,301 +518,3 @@ def update_table_Metriken(flight_Abflug, flight_Ankunft, metrics, forecast):
         print("Fehler:", e)
         # Im Fehlerfall: Leere Daten zurückgeben
         return [], "", []
-
-
-
-
-
-
-
-
-
-# table_columns = [
-#     {'name': 'Metrik', 'id': 'Metrik'},
-#     {'name': 'Long-Short-Term-memory', 'id': 'LSTM'},
-#     {'name': 'Saisional lineare Regression', 'id': 'SLR'},
-#     {'name': 'Seasonal-ARIMA', 'id': 'SARIMA'}
-# ]
-
-# # Definiere die Zeilen für die Tabelle (Metriken) mit initialen Werten
-# table_rows = [
-#     {'Metrik': 'MAE', 'LSTM': '','SLR': '', 'SARIMA': ''},
-#     {'Metrik': 'MSE', 'LSTM': '','SLR': '',  'SARIMA': ''},
-#     {'Metrik': 'RMSE', 'LSTM': '','SLR': '',  'SARIMA': ''}
-# ]
-
-# table_columns_Best = [
-#     {'name': 'Monat', 'id': 'Monat'},
-#     {'name': 'Prognosewert', 'id': 'Prognosewert'},
-
-# ]
-
-
-
-
-# # Daten laden
-# csv_file_path_fares = 'AUS_Fares_March2024.csv'
-# df = pd.read_csv(csv_file_path_fares)
-
-# # Datenvorbereitung
-# df['YearMonth'] = pd.to_datetime(df['YearMonth'], format='%Y%m')
-# df = df.rename(columns={'$Value': 'Value', '$Real': 'Real'})
-# df = df.drop_duplicates(subset=['YearMonth', 'Route'])
-
-# def prepare_data(df, flight_Abflug, flight_Ankunft):
-#     route_df = df[(df['Port1'] == flight_Abflug) & (df['Port2'] == flight_Ankunft)].copy()
-#     if route_df.empty:
-#         raise ValueError(f"No data found for the route from {flight_Abflug} to {flight_Ankunft}")
-#     route_df.set_index('YearMonth', inplace=True)
-#     route_df = route_df[~route_df.index.duplicated(keep='first')]
-#     if 'Real' not in route_df.columns:
-#         raise ValueError(f"The 'Real' column is missing in the data for the route from {flight_Abflug} to {flight_Ankunft}")
-#     route_df = route_df.asfreq('MS').interpolate()
-#     return route_df
-
-# def create_figure(route_df, forecast_df, metrics, flight_Abflug, flight_Ankunft):
-#     fig = go.Figure()
-#     fig.add_trace(go.Scatter(x=route_df.index, y=route_df['Real'], mode='lines', name='Tatsächliche Preise'))
-#     fig.add_trace(go.Scatter(x=forecast_df.index, y=forecast_df['Forecast'], mode='lines+markers', name='Prognose', line=dict(color='orange', dash='dash')))
-#     fig.add_trace(go.Scatter(x=forecast_df.index, y=forecast_df['Lower CI'], mode='lines', line=dict(color='grey'), showlegend=False))
-#     fig.add_trace(go.Scatter(x=forecast_df.index, y=forecast_df['Upper CI'], mode='lines', line=dict(color='grey'), fill='tonexty', showlegend=False))
-
-#     metrics_table = f"<b>Metriken</b><br>MSE: {metrics['mse']:.2f}<br>MAE: {metrics['mae']:.2f}<br>RMSE: {metrics['rmse']:.2f}"
-#     fig.add_trace(go.Scatter(x=[None], y=[None], mode='markers', marker=dict(size=10, color='rgba(0,0,0,0)'), showlegend=True, name=metrics_table, hoverinfo='none'))
-#     fig.update_layout(title=f"Prognose für die Strecke: {flight_Abflug} & {flight_Ankunft}", xaxis_title='Jahr', yaxis_title='Preis ($)', template='plotly_dark', legend=dict(x=1, y=1, traceorder='normal', font=dict(size=12, color="white")), margin=dict(r=200))
-#     return fig
-
-
-# layout = html.Div([
-#     html.Div([
-#         dash_table.DataTable(
-#             id='table_Metriken',
-#             columns=[
-#                 {'name': 'Metrik', 'id': 'Metrik'},
-#                 {'name': 'LSTM', 'id': 'LSTM'},
-#                 {'name': 'SLR', 'id': 'SLR'},
-#                 {'name': 'SARIMA', 'id': 'SARIMA'}
-#             ],
-#             data=[],
-#             style_cell={
-#                 'textAlign': 'center',
-#                 'color': '#FFFFFF',
-#                 'backgroundColor': "#121212",
-#                 'font_size': '15px',
-#                 'font-family': 'Constantia'
-#             },
-#             style_header={
-#                 'backgroundColor': '#4169E1',
-#                 'padding': '10px',
-#                 'color': '#FFFFFF',
-#                 'font-family': 'Constantia'
-#             },
-#             style_data_conditional=[
-#                 {
-#                     'if': {'column_id': c['id']},
-#                     'minWidth': '20px',
-#                     'maxWidth': '30px',
-#                     'width': '30px'
-#                 } for c in [
-#                     {'name': 'Metrik', 'id': 'Metrik'},
-#                     {'name': 'LSTM', 'id': 'LSTM'},
-#                     {'name': 'SLR', 'id': 'SLR'},
-#                     {'name': 'SARIMA', 'id': 'SARIMA'}
-#                 ]
-#             ],
-#             style_table={
-#                 'marginTop': '50px',
-#                 'width': '100%',
-#                 'marginLeft': '20px'
-#             },
-#             fill_width=False
-#         ),
-#         html.Br(),
-#         html.Div([
-#             html.Span("Beste Methode:", style={'font-size': '25px'}),
-#             html.P(""),
-#             html.Span(id="BestMethod", style={'font-size': '25px', 'color': 'green'})
-#         ], style={'display': 'flex', 'align-items': 'center', 'margin-top': '15px'})
-#     ], style={'display': 'inline-block', 'width': '25%', 'verticalAlign': 'top'}),
-
-#     dash_table.DataTable(
-#             id='table_BestPrognose',
-#             columns=[
-#                 {'name': 'Monat', 'id': 'Monat'},
-#                 {'name': 'Prognosewert', 'id': 'Prognosewert'}
-#             ],
-#             data=[],
-#             style_cell={
-#                 'textAlign': 'center',
-#                 'color': '#FFFFFF',
-#                 'backgroundColor': "#121212",
-#                 'font_size': '15px',
-#                 'font-family': 'Constantia'
-#             },
-#             style_header={
-#                 'backgroundColor': '#4169E1',
-#                 'padding': '10px',
-#                 'color': '#FFFFFF',
-#                 'font-family': 'Constantia'
-#             },
-#             style_data_conditional=[
-#                 {
-#                     'if': {'column_id': c['id']},
-#                     'minWidth': '20px',
-#                     'maxWidth': '30px',
-#                     'width': '30px'
-#                 } for c in [
-#                     {'name': 'Metrik', 'id': 'Metrik'},
-#                     {'name': 'LSTM', 'id': 'LSTM'},
-#                     {'name': 'SLR', 'id': 'SLR'},
-#                     {'name': 'SARIMA', 'id': 'SARIMA'}
-#                 ]
-#             ],
-#             style_table={
-#                 'marginTop': '50px',
-#                 'width': '100%',
-#                 'marginLeft': '20px'
-#             },
-#             fill_width=False
-#         ),
-    
-#     html.Div([
-#         dcc.Graph(id="All-Method-Graph", style={'width': '90%', 'height': '80%', 'marginTop': '50px'}),
-#     ], style={'display': 'inline-block', 'width': '70%', 'verticalAlign': 'top'}),
-    
-#     html.Div(id='error-message', style={'color': 'red', 'textAlign': 'center', 'font-family': 'Constantia'}),
-    
-#     html.Div([
-#         dcc.Graph(id="Method-Graph", style={'width': '33%', 'height': '60%', 'display': 'inline-block', 'margin-top': '20px'}),
-#         dcc.Graph(id="LineareRegression", style={'width': '33%', 'height': '60%', 'display': 'inline-block', 'margin-top': '20px'}),
-#         dcc.Graph(id='price-forecast-graph', style={'width': '33%', 'height': '60%', 'display': 'inline-block', 'margin-top': '20px'}),
-#     ], style={'textAlign': 'center'}),
-# ], style={'background-color': "#121212", 'width': '100%', 'height': '100%', 'font-family': 'Constantia'})
-
-
-
-
-# @callback(Output('Method-Graph', 'figure'), [Input('Port3', 'value'), Input('Port4', 'value')])
-# def update_lstm_graph(flight_Abflug, flight_Ankunft):
-#     fig, normalized_mae_lstm, normalized_mse_lstm, normalized_rmse_lstm,_ = get_lstm_predictions(flight_Abflug, flight_Ankunft)
-#     print("LSTM aus update")
-#     print(normalized_mae_lstm)
-#     print(normalized_mse_lstm)
-#     print(normalized_rmse_lstm)
-
-#     return fig
-
-
-
-# @callback(Output('LineareRegression', 'figure'), [Input('Port3', 'value'), Input('Port4', 'value')])
-# def update_LineareRegression(flight_Abflug, flight_Ankunft):
-#     fig, _, _, _,_ = LineareRegression(flight_Abflug, flight_Ankunft)
-
-#     return fig
-
-
-
-
-
-# @callback(Output('All-Method-Graph', 'figure'), [Input('Port3', 'value'), Input('Port4', 'value')])
-
-
-# def update_all_method_graph(flight_Abflug, flight_Ankunft):
-#     try:
-#         # Bereite den Gesamtvergleichsgraph vor
-#         fig = go.Figure()
-
-#         # # LSTM Prognose
-#         lstm_fig = update_lstm_graph(flight_Abflug, flight_Ankunft)
-#         for trace in lstm_fig['data']:
-#             fig.add_trace(trace)
-#             fig.add_annotation(
-#                 xref="paper", yref="paper",
-#                 x=0.99, y=0.05,
-#                 text="LSTM",  # Hier den gewünschten Text einfügen
-#                 showarrow=False,
-#                 font=dict(size=16, color="yellow"),  # Hier können Sie Schriftgröße und Farbe anpassen
-#                 bgcolor="rgba(0, 0, 0, 0)"  # Transparenter Hintergrund
-#             )
-
-#         # Lineare Regression Prognose
-#         lr_fig = update_LineareRegression(flight_Abflug, flight_Ankunft)
-#         for trace in lr_fig['data']:
-#             fig.add_trace(trace)
-#             fig.add_annotation(
-#                 xref="paper", yref="paper",
-#                 x=0.99, y=0.10,
-#                 text="Lineare Regression",  # Hier den gewünschten Text einfügen
-#                 showarrow=False,
-#                 font=dict(size=16, color="red"),  # Hier können Sie Schriftgröße und Farbe anpassen
-#                 bgcolor="rgba(0, 0, 0, 0)"  # Transparenter Hintergrund
-#             )
-
-#         fig.update_layout(xaxis_title='Datum', yaxis_title='Preis ($)', template='plotly_dark', height=600, showlegend=False)
-#         fig.update_layout( title=f"Vergleich der Prognosemethoden für: {flight_Abflug} & {flight_Ankunft}")
-#         fig.update_xaxes(title="Jahr", range=['2024-01-01', '2025-05-01'])
-
-#         return fig
-
-#     except Exception as e:
-#         fig = go.Figure()
-#         fig.update_layout(title='Fehler bei der Prognose', xaxis_title='Datum', yaxis_title='Preis ($)', template='plotly_dark')
-#         return fig
-    
-
-
-
-# @callback(
-#     Output(component_id='table_Metriken', component_property='data'),
-#     Output('BestMethod', 'children'),
-#     Output(component_id='table_BestPrognose', component_property='data'),
-#     [
-#         Input(component_id='flight_Abflug', component_property="data"),
-#         Input(component_id='flight_Ankunft', component_property="data")
-#     ]
-# )
-# def update_table_Metriken(flight_Abflug, flight_Ankunft):
-
-#     try:
-#         # LSTM predictions and metrics
-#         _, normalized_mae_lstm, normalized_mse_lstm, normalized_rmse_lstm, lstm_predictions = get_lstm_predictions(flight_Abflug, flight_Ankunft)
-
-#         # Linear Regression predictions and metrics
-#         _, normalized_mae_lr, normalized_mse_lr, normalized_rmse_lr, lr_predictions = LineareRegression(flight_Abflug, flight_Ankunft)
-
-#         # Determine best method based on RMSE
-#         metrics_data = [
-#             {'Metrik': 'MAE', 'LSTM': round(normalized_mae_lstm, 2), 'SLR': round(normalized_mae_lr, 2), 'SARIMA': ''},
-#             {'Metrik': 'MSE', 'LSTM': round(normalized_mse_lstm, 2), 'SLR': round(normalized_mse_lr, 2), 'SARIMA': ''},
-#             {'Metrik': 'RMSE', 'LSTM': round(normalized_rmse_lstm, 2), 'SLR': round(normalized_rmse_lr, 2), 'SARIMA': ''}
-#         ]
-
-#         best_method = 'LSTM' #if normalized_rmse_lstm < normalized_rmse_lr else 'SLR'
-
-#         # Prepare forecast table data for table_BestPrognose
-#         table_BestPrognose_data = []
-#         forecast_months = pd.date_range(start='2024-04-01', periods=5, freq='MS').strftime('%B %Y')
-
-#         print("lstm prediction")
-#         print(lstm_predictions)
-
-#         if best_method == 'LSTM':
-#             predictions = lstm_predictions[:5]
-#         else:
-#             predictions = lr_predictions[:5]
-
-#         for month, forecast in zip(forecast_months, predictions):
-#             table_BestPrognose_data.append({'Monat': month, 'Prognosewert': round(forecast, 2)})
-
-#         # Debugging: Prüfen der Rückgabewerte
-#         # print("Metrics data:")
-#         # print(metrics_data)
-#         # print("Best Method:", best_method)
-#         # print("Table Best Prognose data:")
-#         # print(table_BestPrognose_data)
-
-#         return metrics_data, best_method, table_BestPrognose_data
-
-#     except Exception as e:
-#         print("Fehler:", e)
-#         return [], "", []
